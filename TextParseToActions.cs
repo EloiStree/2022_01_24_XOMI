@@ -16,8 +16,8 @@ namespace Test
           new EnumAlias<XBoxInputType>(XBoxInputType.SideButtonRight, "sbr",  "r1", "SideButtonRight"),
           new EnumAlias<XBoxInputType>(XBoxInputType.ArrowLeft, "al", "ArrowLeft"),
           new EnumAlias<XBoxInputType>(XBoxInputType.ArrowRight, "ar", "ArrowRight"),
-          new EnumAlias<XBoxInputType>(XBoxInputType.ArrowDown, "ad", "ArrowDown"),
-          new EnumAlias<XBoxInputType>(XBoxInputType.ArrowUp, "au", "ArrowUp"),
+          new EnumAlias<XBoxInputType>(XBoxInputType.ArrowDown, "ad", "ArrowDown","ab"),
+          new EnumAlias<XBoxInputType>(XBoxInputType.ArrowUp, "au", "ArrowUp", "at"),
           new EnumAlias<XBoxInputType>(XBoxInputType.ButtonDown, "a", "ba","bd", "paddown", "pd", "buttondown"),
           new EnumAlias<XBoxInputType>(XBoxInputType.ButtonRight, "b", "bb", "br", "padright", "pr", "ButtonRight"),
           new EnumAlias<XBoxInputType>(XBoxInputType.ButtonLeft, "x", "bx", "bl", "padleft", "pl", "ButtonLeft"),
@@ -43,9 +43,19 @@ namespace Test
         }
 
         public  void TryToAppendParseToWaitingActions(string receivedMessage)
-        {
+        {//↑↓↕
             receivedMessage = receivedMessage.Replace("(", " ( ");
             receivedMessage = receivedMessage.Replace(")", " ) ");
+            receivedMessage = receivedMessage.Replace("-", "↑");
+            receivedMessage = receivedMessage.Replace("'", "↑");
+            receivedMessage = receivedMessage.Replace("_", "↓");
+            receivedMessage = receivedMessage.Replace(",", "↓");
+            receivedMessage = receivedMessage.Replace(".", "↓");
+            receivedMessage = receivedMessage.Replace(":", "↕");
+            receivedMessage = receivedMessage.Replace(";", "↕");
+            receivedMessage = receivedMessage.Replace("↑", "‾");
+            receivedMessage = receivedMessage.Replace("↓", "-");
+            receivedMessage = receivedMessage.Replace("↕", "=");
             while (receivedMessage.IndexOf("  ") > -1)
             {
                 receivedMessage = receivedMessage.Replace("  ", " ");
@@ -71,35 +81,58 @@ namespace Test
 
             List<ParseItem> parseItems = new List<ParseItem>();
 
+
+
+
             for (int i = 0; i < parseItemsAsString.Count; i++)
             {
                 string m = parseItemsAsString[i].Message();
 
-                string aliasName = m.Substring(0, m.Length - 1);
+                Console.Write("m " +m);
+                string aliasName = GetFrontOfSpliter(m);
+                GetTimeAfterSplitter(parseItemsAsString[i], out bool hasSpliter, out bool hasValideTime, out int timeInMilliseconds);
 
-                if (parseItemsAsString[i].EndWithChar('↓'))
+                Console.Write("td " + String.Join(" - ", hasSpliter, hasValideTime, timeInMilliseconds));
+
+                if (parseItemsAsString[i].ContainChar('_'))
                 {
                     m_boolAlias.Get(aliasName, out bool found, out XBoxInputType inputType);
                     if (found && inputType != XBoxInputType.Undefined)
                         parseItems.Add(new ParseItem_PressInput(PressType.Press, inputType));
+                    if (hasValideTime) {
+
+                        parseItems.Add(new ParseItem_DelayNextItems(timeInMilliseconds));
+                        parseItems.Add(new ParseItem_PressInput(PressType.Release, inputType));
+                    }
+
                 }
-                else if (parseItemsAsString[i].EndWithChar('↑'))
+                else if (parseItemsAsString[i].ContainChar('‾'))
                 {
                     m_boolAlias.Get(aliasName, out bool found, out XBoxInputType inputType);
                     if (found && inputType != XBoxInputType.Undefined)
                         parseItems.Add(new ParseItem_PressInput(PressType.Release, inputType));
+                    if (hasValideTime)
+                    {
+
+                        parseItems.Add(new ParseItem_DelayNextItems(timeInMilliseconds));
+                        parseItems.Add(new ParseItem_PressInput(PressType.Press, inputType));
+                    }
 
                 }
-                else if (parseItemsAsString[i].EndWithChar('↕'))
+                else if (parseItemsAsString[i].ContainChar('='))
                 {
 
                     m_boolAlias.Get(aliasName, out bool found, out XBoxInputType inputType);
                     if (found && inputType != XBoxInputType.Undefined)
                     {
                         parseItems.Add(new ParseItem_PressInput(PressType.Press, inputType));
-                        parseItems.Add(new ParseItem_DelayNextItems(m_millisecondsBetweenPress));
+                        if (hasValideTime)
+                            parseItems.Add(new ParseItem_DelayNextItems(timeInMilliseconds));
+                        else
+                            parseItems.Add(new ParseItem_DelayNextItems(m_millisecondsBetweenPress));
                         parseItems.Add(new ParseItem_PressInput(PressType.Release, inputType));
                     }
+                    Console.Write("t " + aliasName + " " + inputType);
 
                 }
                 else if (
@@ -111,12 +144,17 @@ namespace Test
                     }
 
                 }
-                else if (
-                    parseItemsAsString[i].ContainChar('↑'))
-                { }
-                else if (
-                    parseItemsAsString[i].ContainChar('↓'))
-                { }
+                
+                else {
+                    m_boolAlias.Get(aliasName, out bool found, out XBoxInputType inputType);
+                    Console.Write("i " + aliasName + " " + inputType);
+                    if (found && inputType != XBoxInputType.Undefined)
+                    {
+                        parseItems.Add(new ParseItem_PressInput(PressType.Press, inputType));
+                        parseItems.Add(new ParseItem_DelayNextItems(m_millisecondsBetweenPress));
+                        parseItems.Add(new ParseItem_PressInput(PressType.Release, inputType));
+                    }
+                }
 
             }
 
@@ -141,5 +179,34 @@ namespace Test
 
         }
 
+        private string GetFrontOfSpliter(string m)
+        {
+           string [] tokens= m.Split(new char[] { '‾', '_', '=', '↑', '↓', '↕' });
+            if (tokens.Length <= 0) return m;
+            else return tokens[0];
+        }
+
+        private void GetTimeAfterSplitter(ParseItemAsString parseItemAsString, out bool hasSpliter, out bool hasValideTime, out int timeInMilliseconds)
+        {
+            parseItemAsString.GetText(out string text);
+            string [] tokens = text.Split(new char[] { '‾','_', '=' });
+            if (tokens.Length <= 0)
+            {
+                hasSpliter = false; hasValideTime = false;
+                timeInMilliseconds = 0;
+
+
+            }
+            else {
+
+                hasSpliter = true; 
+                hasValideTime = int.TryParse(tokens[tokens.Length - 1].Trim().ToLower(), out timeInMilliseconds);
+            }
+
+
+
+        }
+
+       
     }
 }

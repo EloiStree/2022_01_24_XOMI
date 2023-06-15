@@ -10,6 +10,8 @@ namespace Test
  
     public class UDPListenerThread
     {
+        public enum TypeEncoding {UTF8, Unicode }
+        public TypeEncoding m_encodingType;
         public int m_portId = 2504;
         public float m_timeBetweenUnityCheck = 0.05f;
         public System.Threading.ThreadPriority m_threadPriority;
@@ -75,7 +77,8 @@ namespace Test
                 {
 
                     Byte[] receiveBytes = m_listener.Receive(ref m_ipEndPoint);
-                    string returnData = Encoding.UTF8.GetString(receiveBytes);
+                    
+                    string returnData = m_encodingType== TypeEncoding.UTF8? Encoding.UTF8.GetString(receiveBytes): Encoding.Unicode.GetString(receiveBytes);
                     m_receivedMessages.Enqueue(returnData);
                 }
                 catch (Exception e)

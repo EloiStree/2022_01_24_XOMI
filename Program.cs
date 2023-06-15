@@ -46,6 +46,12 @@ namespace Test
             Console.WriteLine("XOMI");
             Thread.Sleep(1000);
 
+            Console.WriteLine("Don't forget to install:\n https://github.com/ViGEm/ViGEmBus/releases/tag/v1.21.442.0");
+            Console.WriteLine("XOMI Doc & code here:\n https://github.com/EloiStree/2022_01_24_XOMI");
+            Console.WriteLine("Support my work in general: https://eloi.page.link/support");
+
+            Console.WriteLine("");
+
             Console.WriteLine("Launch UDP Listener...");
             m_udpThread.Launch(ref m_udpPackageReceived, 2504);
             Console.WriteLine("Launched.");
@@ -55,152 +61,160 @@ namespace Test
             Console.WriteLine("IP: " + string.Join(", ", ips));
             Console.WriteLine("Port: 2504 ");
             Console.WriteLine("");
+            bool useDebug=true;
 
-
-
-            ViGEmClient client = new ViGEmClient();
-            IXbox360Controller controller = client.CreateXbox360Controller();
-            controller.Connect();
-
-            TextParseToActions parser = new TextParseToActions(m_waitingActions);
-
-            List<TimedXBoxAction> actions = m_waitingActions.GetRefToActionStack();
-            List<TimedXBoxAction> toRemove = new List<TimedXBoxAction>();
-
-
-            while (true)
+            try
             {
+                ViGEmClient client = new ViGEmClient();
+                IXbox360Controller controller = client.CreateXbox360Controller();
+                controller.Connect();
 
-                m_udpThread.StayAlivePing();
-                if (m_udpPackageReceived.Count > 0)
-                {
-                    string s = m_udpPackageReceived.Dequeue();
-                    Console.WriteLine("Received:"+s);
-                    parser.TryToAppendParseToWaitingActions(s);
+                TextParseToActions parser = new TextParseToActions(m_waitingActions);
 
-                }
-                toRemove.Clear();
-                DateTime now = DateTime.Now;
-                for (int i = 0; i < actions.Count; i++)
+                List<TimedXBoxAction> actions = m_waitingActions.GetRefToActionStack();
+                List<TimedXBoxAction> toRemove = new List<TimedXBoxAction>();
+
+
+                while (true)
                 {
-                    if (actions[i].GetWhenToExecute() <= now)
+                    m_udpThread.StayAlivePing();
+                    if (m_udpPackageReceived.Count > 0)
                     {
-                        toRemove.Add(actions[i]);
+                        string s = m_udpPackageReceived.Dequeue();
+                        if(useDebug)
+                            Console.WriteLine("Received:" + s);
+                        parser.TryToAppendParseToWaitingActions(s);
+
                     }
-                }
-                for (int i = 0; i < toRemove.Count; i++)
-                {
-                    actions.Remove(toRemove[i]);
-
-                }
-
-                for (int i = 0; i < toRemove.Count; i++)
-                {
-                    if (toRemove[i] is TimedXBoxAction_ApplyChange)
+                    toRemove.Clear();
+                    DateTime now = DateTime.Now;
+                    for (int i = 0; i < actions.Count; i++)
                     {
-                        TimedXBoxAction_ApplyChange toApply = (TimedXBoxAction_ApplyChange)toRemove[i];
-                        Console.WriteLine(string.Format("{0}| {1}{3} {2}", toApply.GetWhenToExecute().ToString("yyyy-dd-HH-mm-ss-fff"), toApply.GetPressionType(), toApply.GetInputType()
-                            , toApply.GetPressionType()==PressType.Press? "↓": "↑"));
-                        bool pression = toApply.GetPressionType() == PressType.Press;
-
-                        switch (toApply.GetInputType())
+                        if (actions[i].GetWhenToExecute() <= now)
                         {
-                            case XBoxInputType.ArrowLeft:
-                                controller.SetButtonState(Xbox360Button.Left, pression);
-                                break;
-                            case XBoxInputType.ArrowRight:
-                                controller.SetButtonState(Xbox360Button.Right, pression);
-                                break;
-                            case XBoxInputType.ArrowDown:
-                                controller.SetButtonState(Xbox360Button.Down, pression);
-                                break;
-                            case XBoxInputType.ArrowUp:
-                                controller.SetButtonState(Xbox360Button.Up, pression);
-                                break;
-
-
-                            case XBoxInputType.JoystickLeft_Left:
-                                controller.SetAxisValue(Xbox360Axis.LeftThumbX, -32768);
-                                break;
-                            case XBoxInputType.JoystickLeft_Right:
-                                controller.SetAxisValue(Xbox360Axis.LeftThumbX, 32767);
-                                break;
-                            case XBoxInputType.JoystickLeft_Down:
-                                controller.SetAxisValue(Xbox360Axis.LeftThumbY, -32768);
-                                break;
-                            case XBoxInputType.JoystickLeft_Up:
-                                controller.SetAxisValue(Xbox360Axis.LeftThumbY, 32767);
-                                break;
-
-                            case XBoxInputType.JoystickRight_Left:
-                                controller.SetAxisValue(Xbox360Axis.RightThumbX, -32768);
-                                break;
-                            case XBoxInputType.JoystickRight_Right:
-                                controller.SetAxisValue(Xbox360Axis.RightThumbX, 32767);
-                                break;
-                            case XBoxInputType.JoystickRight_Down:
-                                controller.SetAxisValue(Xbox360Axis.RightThumbY, -32768);
-                                break;
-                            case XBoxInputType.JoystickRight_Up:
-                                controller.SetAxisValue(Xbox360Axis.RightThumbY, 32767);
-                                break;
-
-
-                            case XBoxInputType.ButtonUp:
-                                controller.SetButtonState(Xbox360Button.Y, pression);
-                                break;
-                            case XBoxInputType.ButtonDown:
-                                controller.SetButtonState(Xbox360Button.A, pression);
-                                break;
-                            case XBoxInputType.ButtonRight:
-                                controller.SetButtonState(Xbox360Button.B, pression);
-                                break;
-                            case XBoxInputType.ButtonLeft:
-                                controller.SetButtonState(Xbox360Button.X, pression);
-                                break;
-                            case XBoxInputType.SideButtonLeft:
-                                controller.SetButtonState(Xbox360Button.LeftShoulder, pression);
-                                break;
-                            case XBoxInputType.SideButtonRight:
-                                controller.SetButtonState(Xbox360Button.RightShoulder, pression);
-                                break;
-                            case XBoxInputType.TriggerLeft:
-                                controller.SetSliderValue(Xbox360Slider.LeftTrigger, pression ? (byte)255 : (byte)0);
-                                break;
-                            case XBoxInputType.TriggerRight:
-                                controller.SetSliderValue(Xbox360Slider.RightTrigger, pression ? (byte)255 : (byte)0);
-                                break;
-                            case XBoxInputType.MenuLeft:
-                                controller.SetButtonState(Xbox360Button.Back, pression);
-                                break;
-                            case XBoxInputType.MenuRight:
-                                controller.SetButtonState(Xbox360Button.Start, pression);
-                                break;
-                            case XBoxInputType.XboxButton:
-                                //Check if it is correct.
-                                controller.SetButtonState(Xbox360Button.Guide, pression);
-                                break;
-                            case XBoxInputType.JoystickLeftButton:
-                                controller.SetButtonState(Xbox360Button.LeftThumb, pression);
-                                break;
-                            case XBoxInputType.JoystickRightButton:
-                                controller.SetButtonState(Xbox360Button.RightThumb, pression);
-                                break;
-                            case XBoxInputType.Undefined:
-                                break;
-                            default:
-                                break;
+                            toRemove.Add(actions[i]);
                         }
-
-
-
+                    }
+                    for (int i = 0; i < toRemove.Count; i++)
+                    {
+                        actions.Remove(toRemove[i]);
 
                     }
+
+                    for (int i = 0; i < toRemove.Count; i++)
+                    {
+                        if (toRemove[i] is TimedXBoxAction_ApplyChange)
+                        {
+                            TimedXBoxAction_ApplyChange toApply = (TimedXBoxAction_ApplyChange)toRemove[i];
+                            if (useDebug)
+                                Console.WriteLine(string.Format("{0}| {1}{3} {2}", toApply.GetWhenToExecute().ToString("yyyy-dd-HH-mm-ss-fff"), toApply.GetPressionType(), toApply.GetInputType()
+                                , toApply.GetPressionType() == PressType.Press ? "↓" : "↑"));
+                            bool pression = toApply.GetPressionType() == PressType.Press;
+
+                            switch (toApply.GetInputType())
+                            {
+                                case XBoxInputType.ArrowLeft:
+                                    controller.SetButtonState(Xbox360Button.Left, pression);
+                                    break;
+                                case XBoxInputType.ArrowRight:
+                                    controller.SetButtonState(Xbox360Button.Right, pression);
+                                    break;
+                                case XBoxInputType.ArrowDown:
+                                    controller.SetButtonState(Xbox360Button.Down, pression);
+                                    break;
+                                case XBoxInputType.ArrowUp:
+                                    controller.SetButtonState(Xbox360Button.Up, pression);
+                                    break;
+
+
+                                case XBoxInputType.JoystickLeft_Left:
+                                    controller.SetAxisValue(Xbox360Axis.LeftThumbX, -32768);
+                                    break;
+                                case XBoxInputType.JoystickLeft_Right:
+                                    controller.SetAxisValue(Xbox360Axis.LeftThumbX, 32767);
+                                    break;
+                                case XBoxInputType.JoystickLeft_Down:
+                                    controller.SetAxisValue(Xbox360Axis.LeftThumbY, -32768);
+                                    break;
+                                case XBoxInputType.JoystickLeft_Up:
+                                    controller.SetAxisValue(Xbox360Axis.LeftThumbY, 32767);
+                                    break;
+
+                                case XBoxInputType.JoystickRight_Left:
+                                    controller.SetAxisValue(Xbox360Axis.RightThumbX, -32768);
+                                    break;
+                                case XBoxInputType.JoystickRight_Right:
+                                    controller.SetAxisValue(Xbox360Axis.RightThumbX, 32767);
+                                    break;
+                                case XBoxInputType.JoystickRight_Down:
+                                    controller.SetAxisValue(Xbox360Axis.RightThumbY, -32768);
+                                    break;
+                                case XBoxInputType.JoystickRight_Up:
+                                    controller.SetAxisValue(Xbox360Axis.RightThumbY, 32767);
+                                    break;
+
+
+                                case XBoxInputType.ButtonUp:
+                                    controller.SetButtonState(Xbox360Button.Y, pression);
+                                    break;
+                                case XBoxInputType.ButtonDown:
+                                    controller.SetButtonState(Xbox360Button.A, pression);
+                                    break;
+                                case XBoxInputType.ButtonRight:
+                                    controller.SetButtonState(Xbox360Button.B, pression);
+                                    break;
+                                case XBoxInputType.ButtonLeft:
+                                    controller.SetButtonState(Xbox360Button.X, pression);
+                                    break;
+                                case XBoxInputType.SideButtonLeft:
+                                    controller.SetButtonState(Xbox360Button.LeftShoulder, pression);
+                                    break;
+                                case XBoxInputType.SideButtonRight:
+                                    controller.SetButtonState(Xbox360Button.RightShoulder, pression);
+                                    break;
+                                case XBoxInputType.TriggerLeft:
+                                    controller.SetSliderValue(Xbox360Slider.LeftTrigger, pression ? (byte)255 : (byte)0);
+                                    break;
+                                case XBoxInputType.TriggerRight:
+                                    controller.SetSliderValue(Xbox360Slider.RightTrigger, pression ? (byte)255 : (byte)0);
+                                    break;
+                                case XBoxInputType.MenuLeft:
+                                    controller.SetButtonState(Xbox360Button.Back, pression);
+                                    break;
+                                case XBoxInputType.MenuRight:
+                                    controller.SetButtonState(Xbox360Button.Start, pression);
+                                    break;
+                                case XBoxInputType.XboxButton:
+                                    //Check if it is correct.
+                                    controller.SetButtonState(Xbox360Button.Guide, pression);
+                                    break;
+                                case XBoxInputType.JoystickLeftButton:
+                                    controller.SetButtonState(Xbox360Button.LeftThumb, pression);
+                                    break;
+                                case XBoxInputType.JoystickRightButton:
+                                    controller.SetButtonState(Xbox360Button.RightThumb, pression);
+                                    break;
+                                case XBoxInputType.Undefined:
+                                    break;
+                                default:
+                                    break;
+                            }
+
+
+
+
+                        }
+                    }
+
+
+                    Thread.Sleep(1);
+
                 }
-
-
-                Thread.Sleep(1);
-
+            }
+            catch (Exception e) {
+                Console.WriteLine("An exception happen:" + e.StackTrace);
+                Console.WriteLine("Contact me if you need help: https://eloistree.page.link/discord");
+                Console.WriteLine("Did you install ViGemBus?\n https://github.com/ViGEm/ViGEmBus/releases/tag/v1.21.442.0");   
             }
         }
 
