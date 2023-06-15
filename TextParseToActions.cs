@@ -44,22 +44,8 @@ namespace Test
 
         public  void TryToAppendParseToWaitingActions(string receivedMessage)
         {//↑↓↕
-            receivedMessage = receivedMessage.Replace("(", " ( ");
-            receivedMessage = receivedMessage.Replace(")", " ) ");
-            receivedMessage = receivedMessage.Replace("-", "↑");
-            receivedMessage = receivedMessage.Replace("'", "↑");
-            receivedMessage = receivedMessage.Replace("_", "↓");
-            receivedMessage = receivedMessage.Replace(",", "↓");
-            receivedMessage = receivedMessage.Replace(".", "↓");
-            receivedMessage = receivedMessage.Replace(":", "↕");
-            receivedMessage = receivedMessage.Replace(";", "↕");
-            receivedMessage = receivedMessage.Replace("↑", "‾");
-            receivedMessage = receivedMessage.Replace("↓", "-");
-            receivedMessage = receivedMessage.Replace("↕", "=");
-            while (receivedMessage.IndexOf("  ") > -1)
-            {
-                receivedMessage = receivedMessage.Replace("  ", " ");
-            }
+            receivedMessage = SecureTextWithOnlyUnderscoreForAndSpaceAround(receivedMessage);
+            Console.WriteLine("m sec:" + receivedMessage);
 
             RawMessageToParse message = new RawMessageToParse(receivedMessage);
 
@@ -88,41 +74,44 @@ namespace Test
             {
                 string m = parseItemsAsString[i].Message();
 
-                Console.Write("m " +m);
+                Console.WriteLine("m " + m);
                 string aliasName = GetFrontOfSpliter(m);
                 GetTimeAfterSplitter(parseItemsAsString[i], out bool hasSpliter, out bool hasValideTime, out int timeInMilliseconds);
 
-                Console.Write("td " + String.Join(" - ", hasSpliter, hasValideTime, timeInMilliseconds));
+                m_boolAlias.Get(aliasName, out bool found, out XBoxInputType inputType);
+                Console.WriteLine("tdd |"+ aliasName + "|" + String.Join(" # ", hasSpliter, hasValideTime, timeInMilliseconds, inputType));
 
                 if (parseItemsAsString[i].ContainChar('_'))
                 {
-                    m_boolAlias.Get(aliasName, out bool found, out XBoxInputType inputType);
                     if (found && inputType != XBoxInputType.Undefined)
+                    {
                         parseItems.Add(new ParseItem_PressInput(PressType.Press, inputType));
-                    if (hasValideTime) {
+                        if (hasValideTime)
+                        {
 
-                        parseItems.Add(new ParseItem_DelayNextItems(timeInMilliseconds));
-                        parseItems.Add(new ParseItem_PressInput(PressType.Release, inputType));
+                            parseItems.Add(new ParseItem_DelayNextItems(timeInMilliseconds));
+                            parseItems.Add(new ParseItem_PressInput(PressType.Release, inputType));
+                        }
                     }
 
                 }
                 else if (parseItemsAsString[i].ContainChar('‾'))
                 {
-                    m_boolAlias.Get(aliasName, out bool found, out XBoxInputType inputType);
                     if (found && inputType != XBoxInputType.Undefined)
-                        parseItems.Add(new ParseItem_PressInput(PressType.Release, inputType));
-                    if (hasValideTime)
                     {
+                        parseItems.Add(new ParseItem_PressInput(PressType.Release, inputType));
+                        if (hasValideTime)
+                        {
 
-                        parseItems.Add(new ParseItem_DelayNextItems(timeInMilliseconds));
-                        parseItems.Add(new ParseItem_PressInput(PressType.Press, inputType));
+                            parseItems.Add(new ParseItem_DelayNextItems(timeInMilliseconds));
+                            parseItems.Add(new ParseItem_PressInput(PressType.Press, inputType));
+                        }
                     }
 
                 }
                 else if (parseItemsAsString[i].ContainChar('='))
                 {
 
-                    m_boolAlias.Get(aliasName, out bool found, out XBoxInputType inputType);
                     if (found && inputType != XBoxInputType.Undefined)
                     {
                         parseItems.Add(new ParseItem_PressInput(PressType.Press, inputType));
@@ -132,7 +121,7 @@ namespace Test
                             parseItems.Add(new ParseItem_DelayNextItems(m_millisecondsBetweenPress));
                         parseItems.Add(new ParseItem_PressInput(PressType.Release, inputType));
                     }
-                    Console.Write("t " + aliasName + " " + inputType);
+                    Console.WriteLine("t " + aliasName + " " + inputType);
 
                 }
                 else if (
@@ -144,10 +133,10 @@ namespace Test
                     }
 
                 }
-                
-                else {
-                    m_boolAlias.Get(aliasName, out bool found, out XBoxInputType inputType);
-                    Console.Write("i " + aliasName + " " + inputType);
+
+                else
+                {
+                    Console.WriteLine("i " + aliasName + " " + inputType);
                     if (found && inputType != XBoxInputType.Undefined)
                     {
                         parseItems.Add(new ParseItem_PressInput(PressType.Press, inputType));
@@ -179,9 +168,32 @@ namespace Test
 
         }
 
+        private static string SecureTextWithOnlyUnderscoreForAndSpaceAround(string receivedMessage)
+        {
+            receivedMessage = receivedMessage.Replace("(", " ( ");
+            receivedMessage = receivedMessage.Replace(")", " ) ");
+            receivedMessage = receivedMessage.Replace("-", "↑");
+            receivedMessage = receivedMessage.Replace("'", "↑");
+            receivedMessage = receivedMessage.Replace("_", "↓");
+            receivedMessage = receivedMessage.Replace(",", "↓");
+            receivedMessage = receivedMessage.Replace(".", "↓");
+            receivedMessage = receivedMessage.Replace(":", "↕");
+            receivedMessage = receivedMessage.Replace(";", "↕");
+            receivedMessage = receivedMessage.Replace("↑", "-");
+            receivedMessage = receivedMessage.Replace("↓", "_");
+            receivedMessage = receivedMessage.Replace("↕", "=");
+            while (receivedMessage.IndexOf("  ") > -1)
+            {
+                receivedMessage = receivedMessage.Replace("  ", " ");
+            }
+            receivedMessage = receivedMessage.Trim();
+            return receivedMessage;
+        }
+
+        char[] m_timeSpliter = new char[] { '‾', '-', '_', '=', '↑', '↓', '↕' };
         private string GetFrontOfSpliter(string m)
         {
-           string [] tokens= m.Split(new char[] { '‾', '_', '=', '↑', '↓', '↕' });
+           string [] tokens= m.Split(m_timeSpliter);
             if (tokens.Length <= 0) return m;
             else return tokens[0];
         }
@@ -189,7 +201,7 @@ namespace Test
         private void GetTimeAfterSplitter(ParseItemAsString parseItemAsString, out bool hasSpliter, out bool hasValideTime, out int timeInMilliseconds)
         {
             parseItemAsString.GetText(out string text);
-            string [] tokens = text.Split(new char[] { '‾','_', '=' });
+            string [] tokens = text.Split(m_timeSpliter);
             if (tokens.Length <= 0)
             {
                 hasSpliter = false; hasValideTime = false;
