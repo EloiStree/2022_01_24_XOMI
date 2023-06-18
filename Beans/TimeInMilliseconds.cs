@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Test
+namespace XOMI.Beans
 {
     public class TimeInMilliseconds
     {
@@ -8,7 +8,7 @@ namespace Test
 
         public TimeInMilliseconds(int milliseconds)
         {
-            this.m_milliseconds = milliseconds;
+            m_milliseconds = milliseconds;
         }
 
         public int GetValue()

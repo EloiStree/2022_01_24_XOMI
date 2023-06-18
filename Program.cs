@@ -3,12 +3,18 @@ using Nefarius.ViGEm.Client.Targets;
 using Nefarius.ViGEm.Client.Targets.Xbox360;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
+using System.Globalization;
 using System.Text;
 using System.Threading;
+using XOMI.InfoHolder;
+using XOMI.Parse;
+using XOMI.Static;
+using XOMI.TimedAction;
+using XOMI.UDP;
+using XOMI.UI;
+using XOMI.Unstore.Xbox;
 
-namespace Test
+namespace XOMI
 {
     public enum PressType { Press, Release }
     public enum XBoxInputType
@@ -32,192 +38,182 @@ namespace Test
         Undefined
     }
 
+    public enum XBoxAxisInputType
+    {
+        JoystickLeft_Left2Right,
+        JoystickLeft_Down2Up,
+        JoystickRight_Left2Right,
+        JoystickRight_Down2Up,
+        TriggerLeft, TriggerRight,
+        Undefined
+    }
+    public enum XBoxJoystickInputType
+    {
+        JoystickLeft, JoystickRight,
+        Undefined
+    }
+
     class Program
     {
         //➤ ☗ | ↓ ← → ↑ _ ‾ ∨ ∧ ¬ ⊗ ≡ ≤ ≥ ⌃ ⌄ ⊓⇅ ⊔⇵ ⊏ ⊐ ↱↳ ∑ -no unity ⤒ ⤓ ⌈ ⌊ 🀲 🀸 ⌛ ⏰ ▸ ▹ 🐁 🖱 💾
 
 
+
         public static XBoxActionStack m_waitingActions = new XBoxActionStack();
         public static Queue<string> m_udpPackageReceived = new Queue<string>();
         public static UDPListenerThread m_udpThread = new UDPListenerThread();
+        public static XboxSingleControllerExecuter m_xboxExecuter;
         static void Main(string[] args)
         {
 
-            Console.WriteLine("XOMI");
-            Thread.Sleep(1000);
+            // To Add later
+            //↓ ← → ↑ as array click
+            //jl↓ jl← jl→ jl↑ as array click
+            //jr↓ jr← jr→ jr↑  jr↖ jr↗ jr↘ jr↙ as array click
 
-            Console.WriteLine("Don't forget to install:\n https://github.com/ViGEm/ViGEmBus/releases/tag/v1.21.442.0");
-            Console.WriteLine("XOMI Doc & code here:\n https://github.com/EloiStree/2022_01_24_XOMI");
-            Console.WriteLine("Support my work in general: https://eloi.page.link/support");
 
-            Console.WriteLine("");
+            // ←↑→=↓↔=↕↖↗↘↙ 	◰◱◲◳
 
-            Console.WriteLine("Launch UDP Listener...");
-            m_udpThread.Launch(ref m_udpPackageReceived, 2504);
-            Console.WriteLine("Launched.");
-            Console.WriteLine("");
-            IpAccess.GetAllLocalIPv4(NetworkInterfaceType.Ethernet, out string[] ips);
 
-            Console.WriteLine("IP: " + string.Join(", ", ips));
-            Console.WriteLine("Port: 2504 ");
-            Console.WriteLine("");
-            bool useDebug=true;
+            for(int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "-p" && i + 1 < args.Length)
+                {
+                    int.TryParse(args[i + 1], out StaticUserPreference.m_port);
+                }
+                if (args[i] == "-d")
+                {
+                    StaticUserPreference.m_wantDebugInfo = true;
+                }
+            }
+            StaticVariable.m_debugUserMessage = StaticUserPreference.m_wantDebugInfo;
+
+            ///////////SET THE APP
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
+
+            //SAY HELLO
+            ConsoleUI.DisplayWelcomeMessage();
+            LaunchTheUdpThreadListener();
 
             try
             {
-                ViGEmClient client = new ViGEmClient();
-                IXbox360Controller controller = client.CreateXbox360Controller();
-                controller.Connect();
+                m_xboxExecuter = new XboxSingleControllerExecuter();
 
+            }
+            catch (Exception e) {
+
+                ConsoleUI.DrawLine();
+                Console.WriteLine("Impossible to create the controller. Error happened:" + e.StackTrace);
+                ConsoleUI.DrawLine();
+                Console.WriteLine("Make sure you installed ViGEm.");
+                Console.WriteLine("Contact me on GitHub or Discord for Help");
+            }
+
+            try
+            {
+              
                 TextParseToActions parser = new TextParseToActions(m_waitingActions);
-
-                List<TimedXBoxAction> actions = m_waitingActions.GetRefToActionStack();
-                List<TimedXBoxAction> toRemove = new List<TimedXBoxAction>();
+                List<TimedXBoxAction> actionInWaitingToBeExecuted = m_waitingActions.GetRefToActionStack();
+                List<TimedXBoxAction> readyToBeExecutedAndRemoved = new List<TimedXBoxAction>();
 
 
                 while (true)
                 {
-                    m_udpThread.StayAlivePing();
+                    m_udpThread.UpdateTheAutodestructionOfThreadTimer();
                     if (m_udpPackageReceived.Count > 0)
                     {
                         string s = m_udpPackageReceived.Dequeue();
-                        if(useDebug)
-                            Console.WriteLine("Received:" + s);
+                        if (StaticVariable.m_debugDevMessage)
+                            Console.WriteLine("Received UDP Message:" + s);
                         parser.TryToAppendParseToWaitingActions(s);
-
                     }
-                    toRemove.Clear();
-                    DateTime now = DateTime.Now;
-                    for (int i = 0; i < actions.Count; i++)
+                    CheckForActionToExecute(actionInWaitingToBeExecuted, readyToBeExecutedAndRemoved);
+
+                    bool requestFlush = false;
+                    for (int i = 0; i < readyToBeExecutedAndRemoved.Count; i++)
                     {
-                        if (actions[i].GetWhenToExecute() <= now)
+                        if (readyToBeExecutedAndRemoved[i] is TimedXBoxAction_ApplyChange)
                         {
-                            toRemove.Add(actions[i]);
+                            TimedXBoxAction_ApplyChange toApply = (TimedXBoxAction_ApplyChange)readyToBeExecutedAndRemoved[i];
+                            m_xboxExecuter.Execute(toApply);
                         }
-                    }
-                    for (int i = 0; i < toRemove.Count; i++)
-                    {
-                        actions.Remove(toRemove[i]);
-
-                    }
-
-                    for (int i = 0; i < toRemove.Count; i++)
-                    {
-                        if (toRemove[i] is TimedXBoxAction_ApplyChange)
+                        if (readyToBeExecutedAndRemoved[i] is TimedXBoxAction_AxisChange)
                         {
-                            TimedXBoxAction_ApplyChange toApply = (TimedXBoxAction_ApplyChange)toRemove[i];
-                            if (useDebug)
-                                Console.WriteLine(string.Format("{0}| {1}{3} {2}", toApply.GetWhenToExecute().ToString("yyyy-dd-HH-mm-ss-fff"), toApply.GetPressionType(), toApply.GetInputType()
-                                , toApply.GetPressionType() == PressType.Press ? "↓" : "↑"));
-                            bool pression = toApply.GetPressionType() == PressType.Press;
-
-                            switch (toApply.GetInputType())
-                            {
-                                case XBoxInputType.ArrowLeft:
-                                    controller.SetButtonState(Xbox360Button.Left, pression);
-                                    break;
-                                case XBoxInputType.ArrowRight:
-                                    controller.SetButtonState(Xbox360Button.Right, pression);
-                                    break;
-                                case XBoxInputType.ArrowDown:
-                                    controller.SetButtonState(Xbox360Button.Down, pression);
-                                    break;
-                                case XBoxInputType.ArrowUp:
-                                    controller.SetButtonState(Xbox360Button.Up, pression);
-                                    break;
-
-
-                                case XBoxInputType.JoystickLeft_Left:
-                                    controller.SetAxisValue(Xbox360Axis.LeftThumbX, -32768);
-                                    break;
-                                case XBoxInputType.JoystickLeft_Right:
-                                    controller.SetAxisValue(Xbox360Axis.LeftThumbX, 32767);
-                                    break;
-                                case XBoxInputType.JoystickLeft_Down:
-                                    controller.SetAxisValue(Xbox360Axis.LeftThumbY, -32768);
-                                    break;
-                                case XBoxInputType.JoystickLeft_Up:
-                                    controller.SetAxisValue(Xbox360Axis.LeftThumbY, 32767);
-                                    break;
-
-                                case XBoxInputType.JoystickRight_Left:
-                                    controller.SetAxisValue(Xbox360Axis.RightThumbX, -32768);
-                                    break;
-                                case XBoxInputType.JoystickRight_Right:
-                                    controller.SetAxisValue(Xbox360Axis.RightThumbX, 32767);
-                                    break;
-                                case XBoxInputType.JoystickRight_Down:
-                                    controller.SetAxisValue(Xbox360Axis.RightThumbY, -32768);
-                                    break;
-                                case XBoxInputType.JoystickRight_Up:
-                                    controller.SetAxisValue(Xbox360Axis.RightThumbY, 32767);
-                                    break;
-
-
-                                case XBoxInputType.ButtonUp:
-                                    controller.SetButtonState(Xbox360Button.Y, pression);
-                                    break;
-                                case XBoxInputType.ButtonDown:
-                                    controller.SetButtonState(Xbox360Button.A, pression);
-                                    break;
-                                case XBoxInputType.ButtonRight:
-                                    controller.SetButtonState(Xbox360Button.B, pression);
-                                    break;
-                                case XBoxInputType.ButtonLeft:
-                                    controller.SetButtonState(Xbox360Button.X, pression);
-                                    break;
-                                case XBoxInputType.SideButtonLeft:
-                                    controller.SetButtonState(Xbox360Button.LeftShoulder, pression);
-                                    break;
-                                case XBoxInputType.SideButtonRight:
-                                    controller.SetButtonState(Xbox360Button.RightShoulder, pression);
-                                    break;
-                                case XBoxInputType.TriggerLeft:
-                                    controller.SetSliderValue(Xbox360Slider.LeftTrigger, pression ? (byte)255 : (byte)0);
-                                    break;
-                                case XBoxInputType.TriggerRight:
-                                    controller.SetSliderValue(Xbox360Slider.RightTrigger, pression ? (byte)255 : (byte)0);
-                                    break;
-                                case XBoxInputType.MenuLeft:
-                                    controller.SetButtonState(Xbox360Button.Back, pression);
-                                    break;
-                                case XBoxInputType.MenuRight:
-                                    controller.SetButtonState(Xbox360Button.Start, pression);
-                                    break;
-                                case XBoxInputType.XboxButton:
-                                    //Check if it is correct.
-                                    controller.SetButtonState(Xbox360Button.Guide, pression);
-                                    break;
-                                case XBoxInputType.JoystickLeftButton:
-                                    controller.SetButtonState(Xbox360Button.LeftThumb, pression);
-                                    break;
-                                case XBoxInputType.JoystickRightButton:
-                                    controller.SetButtonState(Xbox360Button.RightThumb, pression);
-                                    break;
-                                case XBoxInputType.Undefined:
-                                    break;
-                                default:
-                                    break;
-                            }
-
-
-
+                            TimedXBoxAction_AxisChange toApply = (TimedXBoxAction_AxisChange)readyToBeExecutedAndRemoved[i];
+                            m_xboxExecuter.Execute(toApply);
+                        }
+                        if (readyToBeExecutedAndRemoved[i] is TimedXBoxAction_JoysticksChange)
+                        {
+                            TimedXBoxAction_JoysticksChange toApply = (TimedXBoxAction_JoysticksChange)readyToBeExecutedAndRemoved[i];
+                            m_xboxExecuter.Execute(toApply);
+                        }
+                        if (readyToBeExecutedAndRemoved[i] is TimedXBoxAction_FlushAllCommands)
+                        {
+                            requestFlush = true;
 
                         }
+                        if (readyToBeExecutedAndRemoved[i] is TimedXBoxAction_Disconnect)
+                        {
+                            TimedXBoxAction_Disconnect toApply = (TimedXBoxAction_Disconnect)readyToBeExecutedAndRemoved[i];
+                            m_xboxExecuter.Execute(toApply);
+                        }
+                        if (readyToBeExecutedAndRemoved[i] is TimedXBoxAction_Connect)
+                        {
+                            TimedXBoxAction_Connect toApply = (TimedXBoxAction_Connect)readyToBeExecutedAndRemoved[i];
+                            m_xboxExecuter.Execute(toApply);
+                        }
+
+                        if (readyToBeExecutedAndRemoved[i] is TimedXBoxAction_ReleaseAll)
+                        {
+
+                            TimedXBoxAction_ReleaseAll toApply = (TimedXBoxAction_ReleaseAll)readyToBeExecutedAndRemoved[i];
+                            m_xboxExecuter.Execute(toApply);
+                        }
                     }
+                    if (requestFlush)
+                    {
+                        Console.WriteLine("Flush Requested, Deleted:" + actionInWaitingToBeExecuted.Count);
+                        actionInWaitingToBeExecuted.Clear();
+                        requestFlush = false;
+                    }
+
 
 
                     Thread.Sleep(1);
 
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Console.WriteLine("An exception happen:" + e.StackTrace);
                 Console.WriteLine("Contact me if you need help: https://eloistree.page.link/discord");
-                Console.WriteLine("Did you install ViGemBus?\n https://github.com/ViGEm/ViGEmBus/releases/tag/v1.21.442.0");   
+                Console.WriteLine("Did you install ViGemBus?\n https://github.com/ViGEm/ViGEmBus/releases/tag/v1.21.442.0");
             }
         }
 
+        private static void CheckForActionToExecute(List<TimedXBoxAction> actionInWaitingToBeExecuted, List<TimedXBoxAction> readyToBeExecutedAndRemoved)
+        {
+            readyToBeExecutedAndRemoved.Clear();
+            DateTime now = DateTime.Now;
+            for (int i = 0; i < actionInWaitingToBeExecuted.Count; i++)
+            {
+                if (actionInWaitingToBeExecuted[i].GetWhenToExecute() <= now)
+                {
+                    readyToBeExecutedAndRemoved.Add(actionInWaitingToBeExecuted[i]);
+                }
+            }
+            for (int i = 0; i < readyToBeExecutedAndRemoved.Count; i++)
+            {
+                actionInWaitingToBeExecuted.Remove(readyToBeExecutedAndRemoved[i]);
+
+            }
+        }
+
+        private static void LaunchTheUdpThreadListener()
+        {
+            m_udpThread.Launch(ref m_udpPackageReceived, StaticUserPreference.m_port);
+        }
 
         private static void  Multi(ref StringBuilder sb,  string text, int count)
         {

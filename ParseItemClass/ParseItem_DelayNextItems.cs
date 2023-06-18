@@ -1,14 +1,14 @@
 ﻿using System;
 
-namespace Test
+namespace XOMI.ParseItemClass
 {
-    public  class ParseItem_DelayNextItems : ParseItem
+    public class ParseItem_DelayNextItems : ParseItem
     {
         private int m_timeInMilliseconds;
 
         public ParseItem_DelayNextItems(int timeInMilliseconds)
         {
-            this.m_timeInMilliseconds = timeInMilliseconds;
+            m_timeInMilliseconds = timeInMilliseconds;
         }
 
         public double GetValueInMilliseconds()

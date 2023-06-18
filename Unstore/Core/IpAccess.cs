@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 
-namespace Test
+namespace XOMI.Unstore.Core
 {
     public class IpAccess
     {
-       
-        public static void GetAllLocalIPv4(NetworkInterfaceType _type, out string [] ips)
+
+        public static void GetAllLocalIPv4(NetworkInterfaceType _type, out string[] ips)
         {
             List<string> ipAddrList = new List<string>();
             foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces())

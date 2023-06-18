@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using XOMI.Beans;
 
-namespace Test
+namespace XOMI.InfoHolder
 {
     internal class RawMessageToParse
     {
@@ -13,7 +14,7 @@ namespace Test
 
         public RawMessageToParse(string rawMessage)
         {
-            this.m_rawMessage = rawMessage.Trim().ToLower() ;
+            m_rawMessage = rawMessage.Trim().ToLower();
 
             m_hasTimeInMessage = false;
             m_whenToExecute = DateTime.Now;
@@ -70,7 +71,8 @@ namespace Test
 
                 }
             }
-            else {
+            else
+            {
 
                 m_hasTimeInMessage = false;
                 m_whenToExecute = DateTime.Now;
@@ -84,12 +86,12 @@ namespace Test
 
             hasTimeInMessage = m_hasTimeInMessage;
             whenToExecute = m_whenToExecute;
-;
+            ;
         }
 
         public void GetMessageAsString(out string message)
         {
-            message= m_message;
+            message = m_message;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Test
+namespace XOMI
 {
     internal class ParseItemAsString
     {
@@ -31,6 +31,10 @@ namespace Test
         internal void GetText(out string text)
         {
             text = m_text;
+        }
+        internal string GetText()
+        {
+            return m_text;
         }
 
         internal string Message()

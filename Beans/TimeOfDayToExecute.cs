@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Test
+namespace XOMI.Beans
 {
     internal class TimeOfDayToExecute
     {
@@ -8,12 +8,12 @@ namespace Test
 
         public TimeOfDayToExecute(DateTime now, TimeInMilliseconds milliseconds)
         {
-            this.m_now = now;
-            this.m_now = this.m_now.AddMilliseconds(milliseconds.GetValue());
+            m_now = now;
+            m_now = m_now.AddMilliseconds(milliseconds.GetValue());
         }
-        public TimeOfDayToExecute(DateTime now): this(now, new TimeInMilliseconds(0))
+        public TimeOfDayToExecute(DateTime now) : this(now, new TimeInMilliseconds(0))
         {
-            this.m_now = now;
+            m_now = now;
         }
 
         internal void GetTime(out DateTime whenToExecute)

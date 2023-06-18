@@ -5,16 +5,16 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace Test
+namespace XOMI.UDP
 {
- 
+
     public class UDPListenerThread
     {
-        public enum TypeEncoding {UTF8, Unicode }
+        public enum TypeEncoding { UTF8, Unicode }
         public TypeEncoding m_encodingType;
         public int m_portId = 2504;
         public float m_timeBetweenUnityCheck = 0.05f;
-        public System.Threading.ThreadPriority m_threadPriority;
+        public ThreadPriority m_threadPriority;
 
         public Queue<string> m_receivedMessages = new Queue<string>();
         public string m_lastReceived;
@@ -25,20 +25,22 @@ namespace Test
         public bool m_hasBeenKilled;
 
         public DateTime m_isStillUsed;
-        public float m_timeMaxBetweenPingToStayAlive=10;
+        public float m_timeMaxBetweenPingToStayAlive = 10;
 
-        public void StayAlivePing() {
+        public void UpdateTheAutodestructionOfThreadTimer()
+        {
             m_isStillUsed = DateTime.Now;
 
         }
 
-        public bool ShouldStayAlive() {
+        public bool ShouldStayAlive()
+        {
             return (DateTime.Now - m_isStillUsed).Seconds < m_timeMaxBetweenPingToStayAlive;
         }
-        
-        public  void Launch(ref Queue<string> messageQueue, int port)
+
+        public void Launch(ref Queue<string> messageQueue, int port)
         {
-            StayAlivePing();
+            UpdateTheAutodestructionOfThreadTimer();
             m_receivedMessages = messageQueue;
             m_portId = port;
             m_wantThreadAlive = true;
@@ -49,8 +51,8 @@ namespace Test
                 m_threadListener.Start();
             }
         }
-   
-        
+
+
         private void Kill()
         {
             if (m_listener != null)
@@ -76,9 +78,9 @@ namespace Test
                 try
                 {
 
-                    Byte[] receiveBytes = m_listener.Receive(ref m_ipEndPoint);
-                    
-                    string returnData = m_encodingType== TypeEncoding.UTF8? Encoding.UTF8.GetString(receiveBytes): Encoding.Unicode.GetString(receiveBytes);
+                    byte[] receiveBytes = m_listener.Receive(ref m_ipEndPoint);
+
+                    string returnData = m_encodingType == TypeEncoding.UTF8 ? Encoding.UTF8.GetString(receiveBytes) : Encoding.Unicode.GetString(receiveBytes);
                     m_receivedMessages.Enqueue(returnData);
                 }
                 catch (Exception e)
