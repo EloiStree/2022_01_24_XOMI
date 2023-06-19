@@ -4,6 +4,7 @@ using Nefarius.ViGEm.Client.Targets.Xbox360;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using XOMI.InfoHolder;
@@ -95,6 +96,7 @@ namespace XOMI
             //SAY HELLO
             ConsoleUI.DisplayWelcomeMessage();
             LaunchTheUdpThreadListener();
+            ConsoleUI.DisplayipAndPortTargets();
 
             try
             {
@@ -124,7 +126,7 @@ namespace XOMI
                     if (m_udpPackageReceived.Count > 0)
                     {
                         string s = m_udpPackageReceived.Dequeue();
-                        if (StaticVariable.m_debugDevMessage)
+                        //if (StaticVariable.m_debugDevMessage)
                             Console.WriteLine("Received UDP Message:" + s);
                         parser.TryToAppendParseToWaitingActions(s);
                     }
@@ -133,6 +135,7 @@ namespace XOMI
                     bool requestFlush = false;
                     for (int i = 0; i < readyToBeExecutedAndRemoved.Count; i++)
                     {
+                      //  Console.WriteLine("E#" + readyToBeExecutedAndRemoved.GetType());
                         if (readyToBeExecutedAndRemoved[i] is TimedXBoxAction_ApplyChange)
                         {
                             TimedXBoxAction_ApplyChange toApply = (TimedXBoxAction_ApplyChange)readyToBeExecutedAndRemoved[i];
@@ -212,7 +215,43 @@ namespace XOMI
 
         private static void LaunchTheUdpThreadListener()
         {
-            m_udpThread.Launch(ref m_udpPackageReceived, StaticUserPreference.m_port);
+            int i = 0;
+            int port = StaticUserPreference.m_port;
+            bool succeedToCreatePort=false;
+            while (!succeedToCreatePort && i<20) {
+
+                Console.WriteLine("Attempt udp connection to " + (port+i));
+                if (IsPortOpen(port + i))
+                {
+                    Thread.Sleep(10);
+                    m_udpThread.Launch(ref m_udpPackageReceived, port + i);
+                    succeedToCreatePort = true;
+                }
+                else { 
+                    i++;
+                }
+            }
+            StaticUserPreference.m_port = port + i;
+        }
+
+        static bool IsPortOpen(int port)
+        {
+            try
+            {
+                using (var client = new UdpClient(port))
+                {
+
+
+                    client.Close();
+                    client.Dispose();
+                    return true;
+                }
+
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static void  Multi(ref StringBuilder sb,  string text, int count)

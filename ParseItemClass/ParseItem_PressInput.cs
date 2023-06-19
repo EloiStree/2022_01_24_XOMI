@@ -40,10 +40,17 @@ namespace XOMI
     }
     public class ParseItem_FlushAllCommands : ParseItem
     {
-        public ParseItem_FlushAllCommands() 
+        public ParseItem_FlushAllCommands()
         {
         }
     }
+    public class ParseItem_ExitApp : ParseItem
+    {
+        public ParseItem_ExitApp()
+        {
+        }
+    }
+    
     public class ParseItem_ReleaseAll : ParseItem
     {
         public ParseItem_ReleaseAll()
@@ -59,6 +66,12 @@ namespace XOMI
     public class ParseItem_Disconnect : ParseItem
     {
         public ParseItem_Disconnect()
+        {
+        }
+    }
+    public class ParseItem_Restart : ParseItem
+    {
+        public ParseItem_Restart()
         {
         }
     }

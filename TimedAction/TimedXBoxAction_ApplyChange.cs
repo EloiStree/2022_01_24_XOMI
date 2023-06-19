@@ -96,4 +96,17 @@ namespace XOMI.TimedAction
         {
         }
     }
+    public class TimedXBoxAction_Exit : TimedXBoxAction
+    {
+        public TimedXBoxAction_Exit(DateTime whenToExecute) : base(whenToExecute)
+        {
+        }
+    }
+    public class TimedXBoxAction_Restart : TimedXBoxAction
+    {
+        public TimedXBoxAction_Restart(DateTime whenToExecute) : base(whenToExecute)
+        {
+        }
+    }
 }
+    

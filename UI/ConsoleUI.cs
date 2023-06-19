@@ -22,15 +22,16 @@ namespace XOMI.UI
             Console.WriteLine("XOMI Doc & code here:\n https://github.com/EloiStree/2022_01_24_XOMI");
             Console.WriteLine("Support my work in general:\n https://eloi.page.link/support");
 
+         
             Console.WriteLine("");
+            DrawLine();
+        }
 
-            Console.WriteLine("Launch UDP Listener...");
-            Console.WriteLine("");
+        public static void DisplayipAndPortTargets()
+        {
             IpAccess.GetAllLocalIPv4(NetworkInterfaceType.Ethernet, out string[] ips);
 
             DisplayIPAndPortToTarget(ips);
-            Console.WriteLine("");
-            DrawLine();
         }
 
         public static void DrawLine()

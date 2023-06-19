@@ -4,6 +4,7 @@ using Nefarius.ViGEm.Client.Targets.Xbox360;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using XOMI.Static;
@@ -191,6 +192,28 @@ namespace XOMI.Unstore.Xbox
         {
             controller.Connect();
         }
+        public void Execute(TimedXBoxAction_Exit toDo)
+        {
+            Environment.Exit(0);
+
+
+        }
+        public void Execute(TimedXBoxAction_Restart toDo)
+        {
+            //{ //VA
+            //var fileName = Assembly.GetExecutingAssembly().Location;
+            //System.Diagnostics.Process.Start(fileName);
+            //Environment.Exit(0);
+            //}
+
+            { //VB
+            System.Diagnostics.Process.Start(System.AppDomain.CurrentDomain.FriendlyName);
+            Environment.Exit(0);
+            }
+
+        }
+
+        
         public void Execute(TimedXBoxAction_ReleaseAll toDo)
         {
             controller.SetAxisValue(Xbox360Axis.LeftThumbX, 0);

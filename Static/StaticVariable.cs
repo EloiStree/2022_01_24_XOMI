@@ -16,6 +16,6 @@ namespace XOMI.Static
     {
 
         public static int m_port = 2504;
-        public static bool m_wantDebugInfo;
+        public static bool m_wantDebugInfo=true;
     }
 }

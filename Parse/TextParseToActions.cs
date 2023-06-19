@@ -107,6 +107,16 @@ namespace XOMI.Parse
                 string m = parseItemsAsString[i].Message();
                 string mcase = m.Trim().ToLower();
 
+                if (mcase.IndexOf ("exit")==0)
+                {
+                    parseItems.Add(new ParseItem_ExitApp());
+                    continue;
+                }
+                if (mcase.IndexOf("restart")== 0)
+                {
+                    parseItems.Add(new ParseItem_Restart());
+                    continue;
+                }
                 if (mcase == "flush")
                 {
                     parseItems.Add(new ParseItem_FlushAllCommands());
@@ -131,15 +141,18 @@ namespace XOMI.Parse
                 }
                 if (mcase == "unplug")
                 {
-                    parseItems.Add(new ParseItem_Disconnect()); continue;
+                    parseItems.Add(new ParseItem_Disconnect()); 
+                    continue;
                 }
                 if (mcase == "jlzero" || mcase == "jlz")
                 {
-                    parseItems.Add(new ParseItem_JoystickPercent(XBoxJoystickInputType.JoystickLeft, 0, 0)); continue;
+                    parseItems.Add(new ParseItem_JoystickPercent(XBoxJoystickInputType.JoystickLeft, 0, 0)); 
+                    continue;
                 }
                 if (mcase == "jrzero" || mcase == "jrz")
                 {
-                    parseItems.Add(new ParseItem_JoystickPercent(XBoxJoystickInputType.JoystickRight, 0, 0)); continue;
+                    parseItems.Add(new ParseItem_JoystickPercent(XBoxJoystickInputType.JoystickRight, 0, 0));
+                    continue;
                 }
 
                 if (mcase == "jlpn") { parseItems.Add(new ParseItem_JoystickPercent(XBoxJoystickInputType.JoystickLeft, 0, 1)); continue; }
@@ -239,6 +252,7 @@ namespace XOMI.Parse
                     }
 
                 }
+
                 //If Pression type only
                 m = ConvertPressReleaseToUnderScores(m);
 
@@ -249,7 +263,7 @@ namespace XOMI.Parse
                 m_boolAlias.Get(aliasName, out bool found, out XBoxInputType inputType);
                 Console.WriteLine("tdd |" + aliasName + "|" + string.Join(" # ", hasSpliter, hasValideTime, timeInMilliseconds, inputType));
 
-                if (parseItemsAsString[i].ContainChar('_'))
+                if (hasSpliter && m.IndexOf('_')>-1 )
                 {
                     if (found && inputType != XBoxInputType.Undefined)
                     {
@@ -264,7 +278,7 @@ namespace XOMI.Parse
                     }
 
                 }
-                else if (parseItemsAsString[i].ContainChar('‾'))
+                else if (hasSpliter && m.IndexOf('-') > -1)
                 {
                     if (found && inputType != XBoxInputType.Undefined)
                     {
@@ -279,7 +293,7 @@ namespace XOMI.Parse
                     }
 
                 }
-                else if (parseItemsAsString[i].ContainChar('='))
+                else if (hasSpliter && m.IndexOf('=') > -1)
                 {
 
                     if (found && inputType != XBoxInputType.Undefined)
@@ -295,7 +309,7 @@ namespace XOMI.Parse
                     }
 
                 }
-                else
+                else if(!hasSpliter)
                 {
                     Console.WriteLine("i " + aliasName + " " + inputType);
                     if (found && inputType != XBoxInputType.Undefined)
@@ -341,6 +355,15 @@ namespace XOMI.Parse
                 {
                     actions.Add(new TimedXBoxAction_ReleaseAll(timeCount));
                 }
+                if (parseItems[i] is ParseItem_ExitApp)
+                {
+                    actions.Add(new TimedXBoxAction_Exit(timeCount));
+                }
+                if (parseItems[i] is ParseItem_Restart)
+                {
+                    actions.Add(new TimedXBoxAction_Restart(timeCount));
+                }
+
             }
 
         }
@@ -396,10 +419,10 @@ namespace XOMI.Parse
             return receivedMessage;
         }
 
-        char[] m_timeSpliter = new char[] { '‾', '-', '_', '=', '↑', '↓', '↕' };
+        char[] m_pressiontypeCharSplitter = new char[] { '-', '_', '=', };
         private string GetFrontOfSpliter(string m)
         {
-            string[] tokens = m.Split(m_timeSpliter);
+            string[] tokens = m.Split(m_pressiontypeCharSplitter);
             if (tokens.Length <= 0) return m;
             else return tokens[0];
         }
@@ -407,7 +430,7 @@ namespace XOMI.Parse
         private void GetTimeAfterSplitter(ParseItemAsString parseItemAsString, out bool hasSpliter, out bool hasValideTime, out int timeInMilliseconds)
         {
             parseItemAsString.GetText(out string text);
-            string[] tokens = text.Split(m_timeSpliter);
+            string[] tokens = text.Split(m_pressiontypeCharSplitter);
             if (tokens.Length <= 0)
             {
                 hasSpliter = false; hasValideTime = false;
