@@ -7,7 +7,7 @@ namespace XOMI.TimedAction
         private PressType m_press;
         private XBoxInputType m_inputType;
 
-        public TimedXBoxAction_ApplyChange(DateTime timeCount, PressType press, XBoxInputType inputType) : base(timeCount)
+        public TimedXBoxAction_ApplyChange(DateTime whenToExecute, PressType press, XBoxInputType inputType) : base(whenToExecute)
         {
             m_press = press;
             m_inputType = inputType;

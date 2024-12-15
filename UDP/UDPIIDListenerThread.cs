@@ -2,22 +2,17 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
 namespace XOMI.UDP
 {
-
-    public class UDPListenerThread
+    public class UDPIIDListenerThread
     {
-        public enum TypeEncoding { UTF8, Unicode }
-        public TypeEncoding m_encodingType;
-        public int m_portId = 2504;
-        public float m_timeBetweenUnityCheck = 0.05f;
+        public int m_portId = 2505;
         public ThreadPriority m_threadPriority;
 
-        public Queue<string> m_receivedMessages = new Queue<string>();
-        public string m_lastReceived;
+        public Queue<byte[]> m_receivedMessages = new Queue<byte[]>();
+        public byte[] m_lastReceived;
         private bool m_wantThreadAlive = true;
         private Thread m_threadListener = null;
         public UdpClient m_listener;
@@ -38,7 +33,7 @@ namespace XOMI.UDP
             return (DateTime.Now - m_isStillUsed).Seconds < m_timeMaxBetweenPingToStayAlive;
         }
 
-        public void Launch(ref Queue<string> messageQueue, int port)
+        public void Launch(ref Queue<byte[]> messageQueue, int port)
         {
             UpdateTheAutodestructionOfThreadTimer();
             m_receivedMessages = messageQueue;
@@ -79,9 +74,14 @@ namespace XOMI.UDP
                 {
 
                     byte[] receiveBytes = m_listener.Receive(ref m_ipEndPoint);
-
-                    string returnData = m_encodingType == TypeEncoding.UTF8 ? Encoding.UTF8.GetString(receiveBytes) : Encoding.Unicode.GetString(receiveBytes);
-                    m_receivedMessages.Enqueue(returnData);
+                    // Must be 16 ,12,8,4
+                    if (receiveBytes.Length == 16
+                        || receiveBytes.Length == 12
+                        || receiveBytes.Length == 8
+                        || receiveBytes.Length == 4
+                        ) {
+                            m_receivedMessages.Enqueue(receiveBytes);
+                        } 
                 }
                 catch (Exception e)
                 {

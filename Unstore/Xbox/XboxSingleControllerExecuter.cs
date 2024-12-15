@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using XOMI.Static;
@@ -241,5 +242,31 @@ namespace XOMI.Unstore.Xbox
             if (StaticUserPreference.m_wantDebugInfo)
                 Console.WriteLine("Released All");
         }
+
+        public void Randomize_AllButMenu()
+        {
+            controller.SetAxisValue(Xbox360Axis.LeftThumbX, (short)(new Random().Next(-32768, 32767)));
+            controller.SetAxisValue(Xbox360Axis.LeftThumbY, (short)(new Random().Next(-32768, 32767)));
+            controller.SetAxisValue(Xbox360Axis.RightThumbX, (short)(new Random().Next(-32768, 32767)));
+            controller.SetAxisValue(Xbox360Axis.RightThumbY, (short)(new Random().Next(-32768, 32767)));
+            controller.SetSliderValue(Xbox360Slider.LeftTrigger, (byte)(new Random().Next(0, 255)));
+            controller.SetSliderValue(Xbox360Slider.RightTrigger, (byte)(new Random().Next(0, 255)));
+            controller.SetButtonState(Xbox360Button.A, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.B, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.X, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.Y, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.Up, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.Down, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.Left, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.Right, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.RightThumb, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.LeftThumb, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.LeftShoulder, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.RightShoulder, new Random().Next(0, 2) == 1);
+            controller.SetButtonState(Xbox360Button.Start, new Random().Next(0, 2) == 1);
+
+        }
+
+        
     }
 }
