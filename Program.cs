@@ -82,6 +82,22 @@ namespace XOMI
         public static IntegerToActions [] m_integerToActions = new IntegerToActions[4];
         public static void Run(string[] args)
         {
+
+            Queue<byte[]> queueBytes = new Queue<byte[]>();
+            Queue<string> queueText = new Queue<string>();
+
+
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            //SAY HELLO
+            ConsoleUI.DisplayWelcomeMessage();
+            ConsoleUI.DisplayipAndPortTargets();
+            UDPTextListenerThread udpText = new UDPTextListenerThread();
+            UDPIIDListenerThread udpIid = new UDPIIDListenerThread();
+            udpText.Launch(ref queueText,2504);
+            udpIid.Launch(ref queueBytes,2505);
+
+
+
             Console.WriteLine("Did you install ViGemBus?\n https://github.com/ViGEm/ViGEmBus/releases/tag/v1.21.442.0");
 
             m_integerToActions = new IntegerToActions[4];
@@ -141,15 +157,15 @@ namespace XOMI
                 }
             }
 
-            Queue < byte[]> queueBytes = new Queue<byte[]>();
-            UDPIIDListenerThread thread = new UDPIIDListenerThread();
-            thread.Launch(ref queueBytes, StaticUserPreference.m_port);
 
             while (true)
             {
+                udpText.UpdateTheAutodestructionOfThreadTimer();
+                udpIid.UpdateTheAutodestructionOfThreadTimer();
                 while (queueBytes.Count > 0) { 
                 
                     byte[] bytes = queueBytes.Dequeue();
+                    Console.WriteLine(bytes);
 
                     if (bytes.Length == 4)
                     {
@@ -690,18 +706,15 @@ public class IntegerToActions {
             , () => { m_executer.Execute(new TimedXBoxAction_ApplyChange(Now(), XOMI.PressType.Release, XOMI.XBoxInputType.XboxButton)); }
         );
         Add("Random axis", 1320, 2320
-            , () => { 
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Left2Right, RandomFloat11()));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Down2Up, RandomFloat11()));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Left2Right, RandomFloat11()));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Down2Up, RandomFloat11()));
-            
+            , () => {
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickLeft, RandomFloat11(), RandomFloat11()));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, RandomFloat11(), RandomFloat11()));
+
             }
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Left2Right, 0)); 
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Down2Up, 0));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Left2Right, 0));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Down2Up, 0));
+
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickLeft, 0,0));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, 0,0));
             }
         );
         Add("Start recording", 1321, 2321
@@ -726,13 +739,11 @@ public class IntegerToActions {
         );
         Add("Move left stick up-right", 1332, 2332
             , () => {
-
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Down2Up, 1));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Left2Right, 1));
+                
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickLeft,1,1 ));
             }
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Down2Up, 0));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Left2Right, 0));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickLeft,0,0 ));
             }
         );
         Add("Move left stick right", 1333, 2333
@@ -746,12 +757,10 @@ public class IntegerToActions {
         );
         Add("Move left stick down-right", 1334, 2334
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Down2Up, -1));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Left2Right, 1));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickLeft, 1, -1));
             }
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Down2Up, 0));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Left2Right, 0));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickLeft, 0, 0));
             }
         );
         Add("Move left stick down", 1335, 2335
@@ -764,12 +773,10 @@ public class IntegerToActions {
         );
         Add("Move left stick down-left", 1336, 2336
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Down2Up, -1));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Left2Right, -1));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickLeft, -1,-1));
             }
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Down2Up, 0));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Left2Right, 0));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickLeft, 0, 0));
             }
         );
         Add("Move left stick left", 1337, 2337
@@ -782,12 +789,10 @@ public class IntegerToActions {
         );
         Add("Move left stick up-left", 1338, 2338
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Down2Up, 1));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Left2Right, -1));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickLeft, -1, 1));
             }
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Down2Up, 0));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickLeft_Left2Right, 0));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickLeft, 0, 0));
             }
         );
         Add("Set right stick to neutral(clockwise)",1340, 2340
@@ -795,8 +800,7 @@ public class IntegerToActions {
                 m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, 0, 0));
             }
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Down2Up, 0));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Left2Right, 0));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, 0, 0));
             }
         );
         Add("Move right stick up", 1341, 2341
@@ -809,12 +813,10 @@ public class IntegerToActions {
         );
         Add("Move right stick up-right", 1342, 2342
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Down2Up, 1));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Left2Right, 1));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, 1, 1));
             }
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Down2Up, 0));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Left2Right, 0));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, 0, 0));
             }
         );
         Add("Move right stick right", 1343, 2343
@@ -827,12 +829,10 @@ public class IntegerToActions {
         );
         Add("Move right stick down-right", 1344, 2344
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Down2Up, -1));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Left2Right, 1));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, 1, -1));
             }
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Down2Up, 0));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Left2Right, 0));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, 0, 0));
             }
         );
         Add("Move right stick down", 1345, 2345
@@ -845,12 +845,10 @@ public class IntegerToActions {
         );
         Add("Move right stick down-left", 1346, 2346
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Down2Up, -1));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Left2Right, -1));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, -1, -1));
             }
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Down2Up, 0));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Left2Right, 0));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, 0, 0));
             }
         );
         Add("Move right stick left", 1347, 2347
@@ -863,12 +861,10 @@ public class IntegerToActions {
         );
         Add("Move right stick up-left", 1348, 2348
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Down2Up, 1));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Left2Right, -1));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, -1, 1));
             }
             , () => {
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Down2Up, 0));
-                m_executer.Execute(new TimedXBoxAction_AxisChange(Now(), XOMI.XBoxAxisInputType.JoystickRight_Left2Right, 0));
+                m_executer.Execute(new TimedXBoxAction_JoysticksChange(Now(), XOMI.XBoxJoystickInputType.JoystickRight, 0, 0));
             }
         );
         Add("Set left stick horizontal to 1.0", 1350, 2350

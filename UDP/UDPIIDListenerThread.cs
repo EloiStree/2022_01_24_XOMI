@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -60,6 +61,8 @@ namespace XOMI.UDP
         private void ChechUdpClientMessageInComing()
         {
 
+            Console.WriteLine("Start Thread UDP Int");
+
             if (m_listener == null)
             {
                 m_listener = new UdpClient(m_portId);
@@ -73,7 +76,7 @@ namespace XOMI.UDP
                 try
                 {
 
-                    byte[] receiveBytes = m_listener.Receive(ref m_ipEndPoint);
+                    byte[] receiveBytes = m_listener.Receive(ref m_ipEndPoint).ToArray();
                     // Must be 16 ,12,8,4
                     if (receiveBytes.Length == 16
                         || receiveBytes.Length == 12
@@ -89,6 +92,7 @@ namespace XOMI.UDP
                     m_wantThreadAlive = false;
                 }
             }
+            Console.WriteLine("End Thread UDP Int");
         }
     }
 
