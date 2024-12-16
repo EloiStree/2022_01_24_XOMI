@@ -14,6 +14,9 @@ See the mapping of the key here:
 
 
 # V 0.0: Text version
+
+**Download:** https://github.com/EloiStree/2022_01_24_XOMI/releases/tag/V0.0
+
 ## How to use ?  
   
 Send UDP message as ASCII to the port of the app (2504 by default).  
