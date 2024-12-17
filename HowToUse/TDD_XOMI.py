@@ -18,6 +18,8 @@ SERVER_UDP_IPV4 = "apint.ddns.net"
 ## YOUR OWN COMPUTER
 # SERVER_UDP_IPV4 = "127.0.0.1"
 
+SERVER_UDP_IPV4 = "192.168.1.42"
+
 # THE HOME SERVER PORT used by Eloi for APINT Unauthentify UDP message when enabled.
 SERVER_UDP_PORT = 3615
 
@@ -374,13 +376,12 @@ class XboxIntegerAction:
             dictionary["jr"]= press_right_stick
             dictionary["jl"]= press_left_stick
             
+            dictionary["tl"]= set_left_trigger_100
+            dictionary["tr"]= set_right_trigger_100
+            dictionary["lt"]= set_left_trigger_100
+            dictionary["rt"]= set_right_trigger_100
             
             
-            
-            
-            
-    
-
 def select_character():
     # Validate character selection
     push_all_debug("A", XboxIntegerAction.press_a)
@@ -412,8 +413,6 @@ def push_text_to_interpretor(text):
             bool_p3 = t.find("_3")>-1
             bool_p4 = t.find("_4")>-1
             bool_all = not bool_p1 and not bool_p2 and not bool_p3 and not bool_p4
-                
-            
             bool_pressed = t.find("+")>-1 or t.find("*")>-1
             bool_release = t.find("-")>-1 or t.find("*")>-1
     
@@ -475,125 +474,121 @@ if __name__ == "__main__":
         push_text_to_interpretor(text)
         
                     
-            
-            
-    
-    
     
     bool_loop = False
     if bool_loop:
         while True:
             a =1
-            # #push_all_debug("Xbox Home Button", 1319)
-            # push_all_debug("Left Stick", XboxIntegerAction.press_left_stick)
-            # push_all_debug("Right Stick", XboxIntegerAction.press_right_stick)
-            # push_all_debug("Menu Right", XboxIntegerAction.press_menu_right)
-            # push_all_debug("Menu Left", XboxIntegerAction.press_menu_left)
+            #push_all_debug("Xbox Home Button", 1319)
+            push_all_debug("Left Stick", XboxIntegerAction.press_left_stick)
+            push_all_debug("Right Stick", XboxIntegerAction.press_right_stick)
+            push_all_debug("Menu Right", XboxIntegerAction.press_menu_right)
+            push_all_debug("Menu Left", XboxIntegerAction.press_menu_left)
             
             
-            # push_all_debug("A", XboxIntegerAction.press_a)
-            # push_all_debug("X", XboxIntegerAction.press_x)
-            # push_all_debug("B", XboxIntegerAction.press_b)
-            # push_all_debug("Y", XboxIntegerAction.press_y)
-            # push_all_debug("Left Side Button", XboxIntegerAction.press_left_side_button)
-            # push_all_debug("Right Side Button", XboxIntegerAction.press_right_side_button)
+            push_all_debug("A", XboxIntegerAction.press_a)
+            push_all_debug("X", XboxIntegerAction.press_x)
+            push_all_debug("B", XboxIntegerAction.press_b)
+            push_all_debug("Y", XboxIntegerAction.press_y)
+            push_all_debug("Left Side Button", XboxIntegerAction.press_left_side_button)
+            push_all_debug("Right Side Button", XboxIntegerAction.press_right_side_button)
             
-            # push_all_debug("Release Dpad", XboxIntegerAction.release_dpad)
-            # push_all_debug("Arrow North", XboxIntegerAction.press_arrow_north)
-            # push_all_debug("Arrow Northeast", XboxIntegerAction.press_arrow_northeast)
-            # push_all_debug("Arrow East", XboxIntegerAction.press_arrow_east)
-            # push_all_debug("Arrow Southeast", XboxIntegerAction.press_arrow_southeast)
-            # push_all_debug("Arrow South", XboxIntegerAction.press_arrow_south)
-            # push_all_debug("Arrow Southwest", XboxIntegerAction.press_arrow_southwest)
-            # push_all_debug("Arrow West", XboxIntegerAction.press_arrow_west)
-            # push_all_debug("Arrow Northwest", XboxIntegerAction.press_arrow_northwest)
-            # push_all_debug("Arrow North", XboxIntegerAction.press_arrow_north)
-            # push_all_debug("Release Dpad", XboxIntegerAction.release_dpad)
-            # push_all_debug("Trigger Left", XboxIntegerAction.set_left_trigger_100)
-            # push_all_debug("Trigger Right", XboxIntegerAction.set_right_trigger_100)
+            push_all_debug("Release Dpad", XboxIntegerAction.release_dpad)
+            push_all_debug("Arrow North", XboxIntegerAction.press_arrow_north)
+            push_all_debug("Arrow Northeast", XboxIntegerAction.press_arrow_northeast)
+            push_all_debug("Arrow East", XboxIntegerAction.press_arrow_east)
+            push_all_debug("Arrow Southeast", XboxIntegerAction.press_arrow_southeast)
+            push_all_debug("Arrow South", XboxIntegerAction.press_arrow_south)
+            push_all_debug("Arrow Southwest", XboxIntegerAction.press_arrow_southwest)
+            push_all_debug("Arrow West", XboxIntegerAction.press_arrow_west)
+            push_all_debug("Arrow Northwest", XboxIntegerAction.press_arrow_northwest)
+            push_all_debug("Arrow North", XboxIntegerAction.press_arrow_north)
+            push_all_debug("Release Dpad", XboxIntegerAction.release_dpad)
+            push_all_debug("Trigger Left", XboxIntegerAction.set_left_trigger_100)
+            push_all_debug("Trigger Right", XboxIntegerAction.set_right_trigger_100)
             
-            # # trigger 1 0.75 0.5 0.25 0
-            # push_all_debug("Trigger Left 0.75", XboxIntegerAction.set_left_trigger_075)
-            # push_all_debug("Trigger Right 0.75", XboxIntegerAction.set_right_trigger_075)
-            # push_all_debug("Trigger Left 0.5", XboxIntegerAction.set_left_trigger_050)
-            # push_all_debug("Trigger Right 0.5", XboxIntegerAction.set_right_trigger_050)
-            # push_all_debug("Trigger Left 0.25", XboxIntegerAction.set_left_trigger_025)
-            # push_all_debug("Trigger Right 0.25", XboxIntegerAction.set_right_trigger_025)
+            # trigger 1 0.75 0.5 0.25 0
+            push_all_debug("Trigger Left 0.75", XboxIntegerAction.set_left_trigger_075)
+            push_all_debug("Trigger Right 0.75", XboxIntegerAction.set_right_trigger_075)
+            push_all_debug("Trigger Left 0.5", XboxIntegerAction.set_left_trigger_050)
+            push_all_debug("Trigger Right 0.5", XboxIntegerAction.set_right_trigger_050)
+            push_all_debug("Trigger Left 0.25", XboxIntegerAction.set_left_trigger_025)
+            push_all_debug("Trigger Right 0.25", XboxIntegerAction.set_right_trigger_025)
             
-            # # Left joystick
-            # push_all_debug("Left Stick Neutral", XboxIntegerAction.set_left_stick_neutral)
-            # push_all_debug("Left Stick Up", XboxIntegerAction.set_left_stick_up)
-            # push_all_debug("Left Stick Up Right", XboxIntegerAction.set_left_stick_up_right)
-            # push_all_debug("Left Stick Right", XboxIntegerAction.set_left_stick_right)
-            # push_all_debug("Left Stick Down Right", XboxIntegerAction.set_left_stick_down_right)
-            # push_all_debug("Left Stick Down", XboxIntegerAction.set_left_stick_down)
-            # push_all_debug("Left Stick Down Left", XboxIntegerAction.set_left_stick_down_left)
-            # push_all_debug("Left Stick Left", XboxIntegerAction.set_left_stick_left)
-            # push_all_debug("Left Stick Up Left", XboxIntegerAction.set_left_stick_up_left)
-            # push_all_debug("Left Stick Up", XboxIntegerAction.set_left_stick_up)
+            # Left joystick
+            push_all_debug("Left Stick Neutral", XboxIntegerAction.set_left_stick_neutral)
+            push_all_debug("Left Stick Up", XboxIntegerAction.set_left_stick_up)
+            push_all_debug("Left Stick Up Right", XboxIntegerAction.set_left_stick_up_right)
+            push_all_debug("Left Stick Right", XboxIntegerAction.set_left_stick_right)
+            push_all_debug("Left Stick Down Right", XboxIntegerAction.set_left_stick_down_right)
+            push_all_debug("Left Stick Down", XboxIntegerAction.set_left_stick_down)
+            push_all_debug("Left Stick Down Left", XboxIntegerAction.set_left_stick_down_left)
+            push_all_debug("Left Stick Left", XboxIntegerAction.set_left_stick_left)
+            push_all_debug("Left Stick Up Left", XboxIntegerAction.set_left_stick_up_left)
+            push_all_debug("Left Stick Up", XboxIntegerAction.set_left_stick_up)
             
             # Right joystick
-            # push_all_debug("Right Stick Neutral", XboxIntegerAction.set_right_stick_neutral)
-            # push_all_debug("Right Stick Up", XboxIntegerAction.set_right_stick_up)
-            # push_all_debug("Right Stick Up Right", XboxIntegerAction.set_right_stick_up_right)
-            # push_all_debug("Right Stick Right", XboxIntegerAction.set_right_stick_right)
-            # push_all_debug("Right Stick Down Right", XboxIntegerAction.set_right_stick_down_right)
-            # push_all_debug("Right Stick Down", XboxIntegerAction.set_right_stick_down)
-            # push_all_debug("Right Stick Down Left", XboxIntegerAction.set_right_stick_down_left)
-            # push_all_debug("Right Stick Left", XboxIntegerAction.set_right_stick_left)
-            # push_all_debug("Right Stick Up Left", XboxIntegerAction.set_right_stick_up_left)
-            # push_all_debug("Right Stick Up", XboxIntegerAction.set_right_stick_up)
+            push_all_debug("Right Stick Neutral", XboxIntegerAction.set_right_stick_neutral)
+            push_all_debug("Right Stick Up", XboxIntegerAction.set_right_stick_up)
+            push_all_debug("Right Stick Up Right", XboxIntegerAction.set_right_stick_up_right)
+            push_all_debug("Right Stick Right", XboxIntegerAction.set_right_stick_right)
+            push_all_debug("Right Stick Down Right", XboxIntegerAction.set_right_stick_down_right)
+            push_all_debug("Right Stick Down", XboxIntegerAction.set_right_stick_down)
+            push_all_debug("Right Stick Down Left", XboxIntegerAction.set_right_stick_down_left)
+            push_all_debug("Right Stick Left", XboxIntegerAction.set_right_stick_left)
+            push_all_debug("Right Stick Up Left", XboxIntegerAction.set_right_stick_up_left)
+            push_all_debug("Right Stick Up", XboxIntegerAction.set_right_stick_up)
             
             
-            # # Left stick 1 0.75 0.5 0.25 0
-            # push_all_debug("Left Stick Horizontal 1", XboxIntegerAction.set_left_stick_horizontal_100)
-            # push_all_debug("Left Stick Horizontal -1", XboxIntegerAction.set_left_stick_horizontal_neg_100)
-            # push_all_debug("Left Stick Vertical 1", XboxIntegerAction.set_left_stick_vertical_100)
-            # push_all_debug("Left Stick Vertical -1", XboxIntegerAction.set_left_stick_vertical_neg_100)
-            # push_all_debug("Left Stick Horizontal 0.75", XboxIntegerAction.set_left_stick_horizontal_075)
-            # push_all_debug("Left Stick Horizontal -0.75", XboxIntegerAction.set_left_stick_horizontal_neg_075)
-            # push_all_debug("Left Stick Vertical 0.75", XboxIntegerAction.set_left_stick_vertical_075)
-            # push_all_debug("Left Stick Vertical -0.75", XboxIntegerAction.set_left_stick_vertical_neg_075)
-            # push_all_debug("Left Stick Horizontal 0.5", XboxIntegerAction.set_left_stick_horizontal_050)
-            # push_all_debug("Left Stick Horizontal -0.5", XboxIntegerAction.set_left_stick_horizontal_neg_050)
-            # push_all_debug("Left Stick Vertical 0.5", XboxIntegerAction.set_left_stick_vertical_050)
-            # push_all_debug("Left Stick Vertical -0.5", XboxIntegerAction.set_left_stick_vertical_neg_050)
-            # push_all_debug("Left Stick Horizontal 0.25", XboxIntegerAction.set_left_stick_horizontal_025)
-            # push_all_debug("Left Stick Horizontal -0.25", XboxIntegerAction.set_left_stick_horizontal_neg_025)
-            # push_all_debug("Left Stick Vertical 0.25", XboxIntegerAction.set_left_stick_vertical_025)
-            # push_all_debug("Left Stick Vertical -0.25", XboxIntegerAction.  set_left_stick_vertical_neg_025)
+            # Left stick 1 0.75 0.5 0.25 0
+            push_all_debug("Left Stick Horizontal 1", XboxIntegerAction.set_left_stick_horizontal_100)
+            push_all_debug("Left Stick Horizontal -1", XboxIntegerAction.set_left_stick_horizontal_neg_100)
+            push_all_debug("Left Stick Vertical 1", XboxIntegerAction.set_left_stick_vertical_100)
+            push_all_debug("Left Stick Vertical -1", XboxIntegerAction.set_left_stick_vertical_neg_100)
+            push_all_debug("Left Stick Horizontal 0.75", XboxIntegerAction.set_left_stick_horizontal_075)
+            push_all_debug("Left Stick Horizontal -0.75", XboxIntegerAction.set_left_stick_horizontal_neg_075)
+            push_all_debug("Left Stick Vertical 0.75", XboxIntegerAction.set_left_stick_vertical_075)
+            push_all_debug("Left Stick Vertical -0.75", XboxIntegerAction.set_left_stick_vertical_neg_075)
+            push_all_debug("Left Stick Horizontal 0.5", XboxIntegerAction.set_left_stick_horizontal_050)
+            push_all_debug("Left Stick Horizontal -0.5", XboxIntegerAction.set_left_stick_horizontal_neg_050)
+            push_all_debug("Left Stick Vertical 0.5", XboxIntegerAction.set_left_stick_vertical_050)
+            push_all_debug("Left Stick Vertical -0.5", XboxIntegerAction.set_left_stick_vertical_neg_050)
+            push_all_debug("Left Stick Horizontal 0.25", XboxIntegerAction.set_left_stick_horizontal_025)
+            push_all_debug("Left Stick Horizontal -0.25", XboxIntegerAction.set_left_stick_horizontal_neg_025)
+            push_all_debug("Left Stick Vertical 0.25", XboxIntegerAction.set_left_stick_vertical_025)
+            push_all_debug("Left Stick Vertical -0.25", XboxIntegerAction.  set_left_stick_vertical_neg_025)
             
             
-            # # Right stick 1 0.75 0.5 0.25 0
-            # push_all_debug("Right Stick Horizontal 1", XboxIntegerAction.set_right_stick_horizontal_100)
-            # push_all_debug("Right Stick Horizontal -1", XboxIntegerAction.set_right_stick_horizontal_neg_100)
-            # push_all_debug("Right Stick Vertical 1", XboxIntegerAction.set_right_stick_vertical_100)
-            # push_all_debug("Right Stick Vertical -1", XboxIntegerAction.set_right_stick_vertical_neg_100)
-            # push_all_debug("Right Stick Horizontal 0.75", XboxIntegerAction.set_right_stick_horizontal_075)
-            # push_all_debug("Right Stick Horizontal -0.75", XboxIntegerAction.set_right_stick_horizontal_neg_075)
-            # push_all_debug("Right Stick Vertical 0.75", XboxIntegerAction.set_right_stick_vertical_075)
-            # push_all_debug("Right Stick Vertical -0.75", XboxIntegerAction.set_right_stick_vertical_neg_075)
-            # push_all_debug("Right Stick Horizontal 0.5", XboxIntegerAction.set_right_stick_horizontal_050)
-            # push_all_debug("Right Stick Horizontal -0.5", XboxIntegerAction.set_right_stick_horizontal_neg_050)
-            # push_all_debug("Right Stick Vertical 0.5", XboxIntegerAction.set_right_stick_vertical_050)
-            # push_all_debug("Right Stick Vertical -0.5", XboxIntegerAction.set_right_stick_vertical_neg_050)
-            # push_all_debug("Right Stick Horizontal 0.25", XboxIntegerAction.set_right_stick_horizontal_025)
-            # push_all_debug("Right Stick Horizontal -0.25", XboxIntegerAction.set_right_stick_horizontal_neg_025)
-            # push_all_debug("Right Stick Vertical 0.25", XboxIntegerAction.set_right_stick_vertical_025)
-            # push_all_debug("Right Stick Vertical -0.25", XboxIntegerAction.set_right_stick_vertical_neg_025)
+            # Right stick 1 0.75 0.5 0.25 0
+            push_all_debug("Right Stick Horizontal 1", XboxIntegerAction.set_right_stick_horizontal_100)
+            push_all_debug("Right Stick Horizontal -1", XboxIntegerAction.set_right_stick_horizontal_neg_100)
+            push_all_debug("Right Stick Vertical 1", XboxIntegerAction.set_right_stick_vertical_100)
+            push_all_debug("Right Stick Vertical -1", XboxIntegerAction.set_right_stick_vertical_neg_100)
+            push_all_debug("Right Stick Horizontal 0.75", XboxIntegerAction.set_right_stick_horizontal_075)
+            push_all_debug("Right Stick Horizontal -0.75", XboxIntegerAction.set_right_stick_horizontal_neg_075)
+            push_all_debug("Right Stick Vertical 0.75", XboxIntegerAction.set_right_stick_vertical_075)
+            push_all_debug("Right Stick Vertical -0.75", XboxIntegerAction.set_right_stick_vertical_neg_075)
+            push_all_debug("Right Stick Horizontal 0.5", XboxIntegerAction.set_right_stick_horizontal_050)
+            push_all_debug("Right Stick Horizontal -0.5", XboxIntegerAction.set_right_stick_horizontal_neg_050)
+            push_all_debug("Right Stick Vertical 0.5", XboxIntegerAction.set_right_stick_vertical_050)
+            push_all_debug("Right Stick Vertical -0.5", XboxIntegerAction.set_right_stick_vertical_neg_050)
+            push_all_debug("Right Stick Horizontal 0.25", XboxIntegerAction.set_right_stick_horizontal_025)
+            push_all_debug("Right Stick Horizontal -0.25", XboxIntegerAction.set_right_stick_horizontal_neg_025)
+            push_all_debug("Right Stick Vertical 0.25", XboxIntegerAction.set_right_stick_vertical_025)
+            push_all_debug("Right Stick Vertical -0.25", XboxIntegerAction.set_right_stick_vertical_neg_025)
             
             
             
             
             
             # Push random value then release to see if everything works
-            # i(int_random_input)
-            # time.sleep(2)
-            # ii(1, int_random_input+1000)
-            # time.sleep(2)
-            # ii(2, int_random_input)
-            # time.sleep(2)
-            # i( int_random_input+1000)
-            # time.sleep(10)
+            i(int_random_input)
+            time.sleep(2)
+            ii(1, int_random_input+1000)
+            time.sleep(2)
+            ii(2, int_random_input)
+            time.sleep(2)
+            i( int_random_input+1000)
+            time.sleep(10)
             
         
