@@ -42,7 +42,6 @@ namespace XOMI.UI
         public static void DisplayIPAndPortToTarget(string[] ips)
         {
             Console.WriteLine("IP: " + string.Join(", ", ips));
-            Console.WriteLine("Port:  " + StaticUserPreference.m_port);
         }
     }
 }

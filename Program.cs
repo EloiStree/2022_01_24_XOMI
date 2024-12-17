@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Threading;
@@ -78,10 +79,32 @@ namespace XOMI
         public static UDPTextListenerThread m_udpThread = new UDPTextListenerThread();
         public static XboxSingleControllerExecuter m_xboxExecuter;
 
+
+        public static List<int> m_banInput = new List<int>();
+
+
+
         //public static IndexIntegerDateQueue m_iidQueue = new IndexIntegerDateQueue();
         public static IntegerToActions [] m_integerToActions = new IntegerToActions[4];
+
         public static void Run(string[] args)
         {
+
+            
+            // IF b1355  ( remove the integer 1355 )
+            for (int i = 0; i < args.Length; i++) { 
+                if (args[i].Length>0 && args[i][0] == 'b' ){
+
+                    if (int.TryParse( args[i].Replace("b", ""), out int integer)) 
+                    {
+                        m_banInput.Add(integer);
+                        Console.WriteLine("Banned integer: " + integer);
+                    }
+                }
+            }
+            // Remove the Menu Left as it allows to leave path of exil and most game.
+            //m_banInput.AddRange(new int[] { 1309 });
+
 
             Queue<byte[]> queueBytes = new Queue<byte[]>();
             Queue<string> queueText = new Queue<string>();
@@ -90,11 +113,24 @@ namespace XOMI
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             //SAY HELLO
             ConsoleUI.DisplayWelcomeMessage();
-            ConsoleUI.DisplayipAndPortTargets();
-            UDPTextListenerThread udpText = new UDPTextListenerThread();
             UDPIIDListenerThread udpIid = new UDPIIDListenerThread();
-            udpText.Launch(ref queueText,2504);
-            udpIid.Launch(ref queueBytes,2505);
+            udpIid.Launch(ref queueBytes,3615);
+            // I removed the text version for the moment while I am coding the integer version.
+            // Text is greate, but I am going in a more row version with an integer index and the logic outside of it.
+            // Using text was good to push atomic command, but it is the reason of the D in IID (having a precised NTP action
+            // Code to add later.
+            // If you add text interpretor in this code you have to do it in all the remote control code.
+            // When the interpretor is on the client side, you just need some interpretor on creat.io pip, Nuget for all the RC possible...
+            //UDPTextListenerThread udpText = new UDPTextListenerThread();
+
+            //udpText.Launch(ref queueText,3614);
+            ConsoleUI.DisplayipAndPortTargets();
+
+
+
+            Console.WriteLine("Port Integer: " + 3615);
+            Console.WriteLine("Index Mapping: https://github.com/EloiStree/2024_08_29_ScratchToWarcraft.git");
+
 
 
 
@@ -160,18 +196,20 @@ namespace XOMI
 
             while (true)
             {
-                udpText.UpdateTheAutodestructionOfThreadTimer();
+               // udpText.UpdateTheAutodestructionOfThreadTimer();
                 udpIid.UpdateTheAutodestructionOfThreadTimer();
                 while (queueBytes.Count > 0) { 
                 
                     byte[] bytes = queueBytes.Dequeue();
                     Console.WriteLine(bytes);
 
+
                     if (bytes.Length == 4)
                     {
                         int integer = BitConverter.ToInt32(bytes, 0);
                         for (int i = 0; i < 4; i++)
                         {
+                            if(IsNotBan(integer))
                             m_integerToActions[i].FetchAndApply(integer);
                         }
                     }
@@ -179,6 +217,8 @@ namespace XOMI
                     
                         int index = BitConverter.ToInt32(bytes, 0);
                         int value = BitConverter.ToInt32(bytes, 4);
+
+                        if (IsNotBan(value)) { 
                         if (index >= 1 && index < 4)
                         {
                             m_integerToActions[index - 1].FetchAndApply(value);
@@ -190,11 +230,13 @@ namespace XOMI
                                 m_integerToActions[i].FetchAndApply(value);
                             }
                         }
+                        }
                     }
                     else if (bytes.Length == 16)
                     {
                         int index = BitConverter.ToInt32(bytes, 0);
                         int value = BitConverter.ToInt32(bytes, 4);
+                        if (IsNotBan(value)) { 
                         DateTime date = DateTime.FromBinary(BitConverter.ToInt64(bytes, 8));
                         if (index >= 1 && index < 4)
                         {
@@ -207,16 +249,19 @@ namespace XOMI
                                 m_integerToActions[i].FetchAndApply(value);
                             }
                         }
+                        }
                     }
                     else if (bytes.Length == 12)
                     {
                         int value = BitConverter.ToInt32(bytes, 0);
+                        if (IsNotBan(value)) { 
                         DateTime date = DateTime.FromBinary(BitConverter.ToInt64(bytes, 4));
                        
                             for (int i = 0; i < 4; i++)
                             {
                                 m_integerToActions[i].FetchAndApply(value);
                             }
+                        }
                     }
                 }
                 
@@ -224,6 +269,12 @@ namespace XOMI
             }
 
         }
+
+        private static bool IsNotBan(int integer)
+        {
+            return !m_banInput.Contains(integer);
+        }
+
     }
 
     public class IndexIntegerDateQueue { 
