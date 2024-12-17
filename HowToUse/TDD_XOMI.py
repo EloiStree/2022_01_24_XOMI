@@ -17,24 +17,13 @@ SERVER_UDP_IPV4 = "apint.ddns.net"
 
 ## YOUR OWN COMPUTER
 # SERVER_UDP_IPV4 = "127.0.0.1"
-
-SERVER_UDP_IPV4 = "192.168.1.42"
+SERVER_UDP_IPV4 = "193.150.14.47"
 
 # THE HOME SERVER PORT used by Eloi for APINT Unauthentify UDP message when enabled.
 SERVER_UDP_PORT = 3615
 
-def listen_udp_messages():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((LISTEN_TEXT_IPV4, LISTEN_TEXT_PORT))
-    while True:
-        data, addr = sock.recvfrom(1024)
-        text = data.decode()
-        push_text_to_interpretor(text)
 
-listener_thread = threading.Thread(target=listen_udp_messages)
-listener_thread.daemon = True
-listener_thread.start()
-
+player_index=1
 
 
 
@@ -462,16 +451,39 @@ def push_text_to_interpretor(text):
                             ii(3, t+1000)
                         if bool_p4:
                             ii(4, t+1000)
-                            
+import random                           
 if __name__ == "__main__":
     
     
     # select_character()
     
+    def listen_udp_messages():
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind((LISTEN_TEXT_IPV4, LISTEN_TEXT_PORT))
+        while True:
+            data, addr = sock.recvfrom(1024)
+            text = data.decode()
+            push_text_to_interpretor(text)
+
+    listener_thread = threading.Thread(target=listen_udp_messages)
+    listener_thread.daemon = True
+    listener_thread.start()
+
+    bool_use_while_true = False
+    if bool_use_while_true:
+        while True:
+            list = ["a","b","x", "y"] 
+            random.shuffle(list)
+            for item in list:
+                push_text_to_interpretor(item)
+                time.sleep(2)
     
-    while True:
-        text = input("Enter text: ")
-        push_text_to_interpretor(text)
+    
+    bool_use_console=True
+    if bool_use_console:
+        while True:
+            text = input("Enter text: ")
+            push_text_to_interpretor(text)
         
                     
     
@@ -581,14 +593,5 @@ if __name__ == "__main__":
             
             
             
-            # Push random value then release to see if everything works
-            i(int_random_input)
-            time.sleep(2)
-            ii(1, int_random_input+1000)
-            time.sleep(2)
-            ii(2, int_random_input)
-            time.sleep(2)
-            i( int_random_input+1000)
-            time.sleep(10)
+
             
-        
