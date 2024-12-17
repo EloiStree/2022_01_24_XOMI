@@ -5,7 +5,21 @@ XOmi is a small tool that listen to UDP message to execute Xbox commands.
 > But is works and that good enough for me for now.  
   
   
-  
+
+# V0.1: Integer version
+
+See the mapping of the key here:  
+[https://github.com/EloiStree/2024_08_29_ScratchToWarcraft](https://github.com/EloiStree/2024_08_29_ScratchToWarcraft)  
+
+
+How to use: 
+- [Draft and long step by step](https://youtu.be/xVfCwnrzutk) 
+
+
+# V 0.0: Text version
+
+**Download:** https://github.com/EloiStree/2022_01_24_XOMI/releases/tag/V0.0
+
 ## How to use ?  
   
 Send UDP message as ASCII to the port of the app (2504 by default).  
