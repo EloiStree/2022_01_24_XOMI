@@ -2,13 +2,44 @@ import socket
 import struct
 import time
 
-IPV4 = "192.168.1.51"
-PORT = 2505
+import socket
+import threading
+
+
+LISTEN_TEXT_IPV4 = "0.0.0.0"
+LISTEN_TEXT_PORT = 2506
+
+
+# CHANGE BY YOUR SERVER IP YOU WANT TO TARGET
+
+## THE HOME SERVER of ELOI for APINT IO
+SERVER_UDP_IPV4 = "apint.ddns.net"
+
+## YOUR OWN COMPUTER
+# SERVER_UDP_IPV4 = "127.0.0.1"
+
+# THE HOME SERVER PORT used by Eloi for APINT Unauthentify UDP message when enabled.
+SERVER_UDP_PORT = 3615
+
+def listen_udp_messages():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind((LISTEN_TEXT_IPV4, LISTEN_TEXT_PORT))
+    while True:
+        data, addr = sock.recvfrom(1024)
+        text = data.decode()
+        push_text_to_interpretor(text)
+
+listener_thread = threading.Thread(target=listen_udp_messages)
+listener_thread.daemon = True
+listener_thread.start()
+
+
+
 
 def send_udp_integer(integer):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     message = struct.pack("<i", integer)
-    sock.sendto(message, (IPV4,PORT))
+    sock.sendto(message, (SERVER_UDP_IPV4,SERVER_UDP_PORT))
     sock.close()
     print("Sent: ", integer)
 
@@ -16,7 +47,7 @@ def send_udp_integer(integer):
 def send_udp_index_integer( index, integer):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     message = struct.pack("<ii", index, integer)
-    sock.sendto(message, (IPV4,PORT))
+    sock.sendto(message, (SERVER_UDP_IPV4,SERVER_UDP_PORT))
     sock.close()
     print("Sent: ", index, integer)
     
@@ -259,7 +290,7 @@ class XboxIntegerAction:
             dictionary["jle"] =  set_left_stick_right
             dictionary["jlse"] =  set_left_stick_down_right
             dictionary["jls"] =  set_left_stick_down
-            dictionary["jlws"] =  set_left_stick_down_left
+            dictionary["jlsw"] =  set_left_stick_down_left
             dictionary["jlw"] =  set_left_stick_left
             dictionary["jlnw"] =  set_left_stick_up_left
             dictionary["jrc"] =  set_right_stick_neutral
@@ -268,7 +299,7 @@ class XboxIntegerAction:
             dictionary["jre"] =  set_right_stick_right
             dictionary["jrse"] =  set_right_stick_down_right
             dictionary["jrs"] =  set_right_stick_down
-            dictionary["jrws"] =  set_right_stick_down_left
+            dictionary["jrsx"] =  set_right_stick_down_left
             dictionary["jrw"] =  set_right_stick_left
             dictionary["jrnw"] =  set_right_stick_up_left
             
@@ -314,10 +345,37 @@ class XboxIntegerAction:
             dictionary["lt+025"]=set_left_trigger_025
             dictionary["rt+025"]=set_right_trigger_025
             
-            dictionary["r1"] =  press_right_side_button
-            dictionary["r2"] =  set_right_trigger_100
-            dictionary["l1"] =  press_left_side_button
-            dictionary["l2"] =  set_left_trigger_100
+            dictionary["r1"] =press_right_side_button
+            dictionary["r2"] =set_right_trigger_100
+            dictionary["l1"] =press_left_side_button
+            dictionary["l2"] =set_left_trigger_100
+            
+            dictionary["al"]=press_arrow_west
+            dictionary["ar"]=press_arrow_east
+            dictionary["au"]=press_arrow_north
+            dictionary["ad"]=press_arrow_south
+            dictionary["ac"]=release_dpad
+            
+            dictionary["br"]= press_b
+            dictionary["bd"]= press_a
+            dictionary["bl"]= press_x
+            dictionary["bu"]= press_y
+            
+            dictionary["jlr"]= set_left_stick_right 
+            dictionary["jll"]= set_left_stick_left
+            dictionary["jlu"]= set_left_stick_up
+            dictionary["jld"]= set_left_stick_down
+            
+            dictionary["jrr"]= set_right_stick_right
+            dictionary["jrl"]= set_right_stick_left
+            dictionary["jru"]= set_right_stick_up
+            dictionary["jrd"]= set_right_stick_down
+            
+            dictionary["jr"]= press_right_stick
+            dictionary["jl"]= press_left_stick
+            
+            
+            
             
             
             
@@ -335,15 +393,10 @@ def select_character():
             
             
 
-if __name__ == "__main__":
-    
-    
-    # select_character()
-    
-    
-    while True:
-        text = input("Enter text: ")
+def push_text_to_interpretor(text):
+        text =text.lower()
         tokens = text.split(" ")
+        
         for t in tokens:
             
             try:
@@ -354,12 +407,28 @@ if __name__ == "__main__":
             except ValueError:
                 pass
             
+            bool_p1 = t.find("_1")>-1
+            bool_p2 = t.find("_2")>-1
+            bool_p3 = t.find("_3")>-1
+            bool_p4 = t.find("_4")>-1
+            bool_all = not bool_p1 and not bool_p2 and not bool_p3 and not bool_p4
+                
+            
             bool_pressed = t.find("+")>-1 or t.find("*")>-1
             bool_release = t.find("-")>-1 or t.find("*")>-1
     
             t= t.replace("+", "")
             t= t.replace("-", "")
             t= t.replace("*", "")
+            if bool_p1:
+                t = t.replace("_1", "")
+            if bool_p2:
+                t = t.replace("_2", "")
+            if bool_p3:
+                t = t.replace("_3", "")
+            if bool_p4:
+                t = t.replace("_4", "")
+            
             
             if not bool_pressed and not bool_release:
                 bool_pressed = True
@@ -371,9 +440,41 @@ if __name__ == "__main__":
                 print("Found: ", t)
                 
                 if bool_pressed:
-                    i(t)
+                    if bool_all:
+                        i(t)
+                    else :
+                        if bool_p1:
+                            ii(1, t)
+                        if bool_p2:
+                            ii(2, t)
+                        if bool_p3:
+                            ii(3, t)
+                        if bool_p4:
+                            ii(4, t)
                 if bool_release:
-                    i(t+1000)
+                    if bool_all:
+                        i(t+1000)
+                    else :
+                        if bool_p1:
+                            ii(1, t+1000)
+                        if bool_p2:
+                            ii(2, t+1000)
+                        if bool_p3:
+                            ii(3, t+1000)
+                        if bool_p4:
+                            ii(4, t+1000)
+                            
+if __name__ == "__main__":
+    
+    
+    # select_character()
+    
+    
+    while True:
+        text = input("Enter text: ")
+        push_text_to_interpretor(text)
+        
+                    
             
             
     
