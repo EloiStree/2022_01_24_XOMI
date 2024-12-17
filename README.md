@@ -12,6 +12,9 @@ See the mapping of the key here:
 [https://github.com/EloiStree/2024_08_29_ScratchToWarcraft](https://github.com/EloiStree/2024_08_29_ScratchToWarcraft)  
 
 
+How to use: 
+- [Draft and long step by step](https://youtu.be/xVfCwnrzutk) 
+
 
 # V 0.0: Text version
 
