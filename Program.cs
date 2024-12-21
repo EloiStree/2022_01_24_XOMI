@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text;
@@ -86,15 +87,16 @@ namespace XOMI
 
         //public static IndexIntegerDateQueue m_iidQueue = new IndexIntegerDateQueue();
         public static IntegerToActions [] m_integerToActions = new IntegerToActions[4];
+        public static int m_controllerNumber = 4;
 
         public static void Run(string[] args)
         {
 
-            
+            // Use joy.cpl to check if it works.
+
             // IF b1355  ( remove the integer 1355 )
             for (int i = 0; i < args.Length; i++) { 
                 if (args[i].Length>0 && args[i][0] == 'b' ){
-
                     if (int.TryParse( args[i].Replace("b", ""), out int integer)) 
                     {
                         m_banInput.Add(integer);
@@ -136,64 +138,48 @@ namespace XOMI
 
             Console.WriteLine("Did you install ViGemBus?\n https://github.com/ViGEm/ViGEmBus/releases/tag/v1.21.442.0");
 
+
             m_integerToActions = new IntegerToActions[4];
-            m_integerToActions[0]= new IntegerToActions(1, new XboxSingleControllerExecuter());
-            Thread.Sleep(1000);
-            m_integerToActions[1] = new IntegerToActions(2, new XboxSingleControllerExecuter());
-            Thread.Sleep(1000);
-            m_integerToActions[2] = new IntegerToActions(3, new XboxSingleControllerExecuter());
-            Thread.Sleep(1000);
-            m_integerToActions[3] = new IntegerToActions(4, new XboxSingleControllerExecuter());
-            Thread.Sleep(1000);
-
-
-            bool useLoopRandomTest = false;
-            if (useLoopRandomTest)
-            {
-                while (true)
-                {
-                    int next = 1399;
-                    for (int i = 0; i < 4; i++)
-                    {
-                        m_integerToActions[i].FetchAndApply(next);
-
-                    }
-                    Thread.Sleep(5000);
-                }
-            }
-            bool useAllFeatureTest = false;
-            if (useAllFeatureTest) {
-
-                foreach (var action in m_integerToActions[0].m_actions)
-                {
-                    Console.WriteLine("Test:" + action.m_name);
-                    Thread.Sleep(2000);
-                    for (int i = 0; i < 4; i++)
-                    {
-                        m_integerToActions[i].FetchAndApply(action.m_pressInteger);
-                        Thread.Sleep(500);
-
-
-                    }
-                    Thread.Sleep(2000);
-                    for (int i = 0; i < 4; i++)
-                    {
-                        m_integerToActions[i].FetchAndApply(action.m_releaseInteger);
-                        Thread.Sleep(500);
-
-                    }
-
-                    Thread.Sleep(1000);
-                    for (int i = 0; i < 4; i++)
-                    {
-                        m_integerToActions[i].m_executer.Execute(new TimedXBoxAction_ReleaseAll(DateTime.Now));
-                     
-                    }
-
-                }
+            if (m_controllerNumber > 4)
+                m_controllerNumber = 4;
+            for (int i = 0; i < m_controllerNumber; i++){ 
+                m_integerToActions[i]= new IntegerToActions(i + 1, new XboxSingleControllerExecuter());
+                Thread.Sleep(100);
             }
 
 
+
+            //bool useAllFeatureTest = false;
+            //if (useAllFeatureTest) {
+            //    foreach (var action in m_integerToActions[0].m_actions)
+            //    {
+            //        Console.WriteLine("Test:" + action.m_name);
+            //        Thread.Sleep(2000);
+            //        for (int i = 0; i < 4; i++)
+            //        {
+            //            m_integerToActions[i].FetchAndApply(action.m_pressInteger);
+            //            Thread.Sleep(500);
+            //        }
+            //        Thread.Sleep(2000);
+            //        for (int i = 0; i < 4; i++)
+            //        {
+            //            m_integerToActions[i].FetchAndApply(action.m_releaseInteger);
+            //            Thread.Sleep(500);
+
+            //        }
+
+            //        Thread.Sleep(1000);
+            //        for (int i = 0; i < 4; i++)
+            //        {
+            //            m_integerToActions[i].m_executer.Execute(new TimedXBoxAction_ReleaseAll(DateTime.Now));
+
+            //        }
+
+            //    }
+            //}
+
+
+            Console.WriteLine("Ready to loop for udp action.");
             while (true)
             {
                // udpText.UpdateTheAutodestructionOfThreadTimer();
@@ -201,16 +187,19 @@ namespace XOMI
                 while (queueBytes.Count > 0) { 
                 
                     byte[] bytes = queueBytes.Dequeue();
-                    Console.WriteLine(bytes);
-
-
+                    Console.WriteLine($"{bytes.Length}: {bytes}");
                     if (bytes.Length == 4)
                     {
                         int integer = BitConverter.ToInt32(bytes, 0);
+                        if (FlushTimedActionIf1256(integer, ref queueBytes))
+                            continue;
+                        Console.WriteLine($"I{integer}");
                         for (int i = 0; i < 4; i++)
                         {
-                            if(IsNotBan(integer))
-                            m_integerToActions[i].FetchAndApply(integer);
+                            if (IsNotBan(integer)) { 
+                                if (m_integerToActions[i]!=null)
+                                m_integerToActions[i].FetchAndApply(integer);
+                            }
                         }
                     }
                     else if (bytes.Length == 8) { 
@@ -218,48 +207,63 @@ namespace XOMI
                         int index = BitConverter.ToInt32(bytes, 0);
                         int value = BitConverter.ToInt32(bytes, 4);
 
+                        if (FlushTimedActionIf1256(value, ref queueBytes))
+                            continue;
+                        Console.WriteLine($"II{index} {value}");
                         if (IsNotBan(value)) { 
-                        if (index >= 1 && index < 4)
-                        {
-                            m_integerToActions[index - 1].FetchAndApply(value);
-                        }
-                        else { 
-                        
-                            for (int i = 0; i < 4; i++)
+                            if (index >= 1 && index < 4)
                             {
-                                m_integerToActions[i].FetchAndApply(value);
+                                if (m_integerToActions[index - 1] != null)
+                                    m_integerToActions[index - 1].FetchAndApply(value);
                             }
-                        }
+                            else { 
+                        
+                                for (int i = 0; i < 4; i++)
+                                {
+                                    if (m_integerToActions[i] != null)
+                                        m_integerToActions[i].FetchAndApply(value);
+                                }
+                            }
                         }
                     }
                     else if (bytes.Length == 16)
                     {
                         int index = BitConverter.ToInt32(bytes, 0);
                         int value = BitConverter.ToInt32(bytes, 4);
+
+                        if (FlushTimedActionIf1256(value, ref queueBytes))
+                            continue;
+                        Console.WriteLine($"IID{index} {value}");
                         if (IsNotBan(value)) { 
-                        DateTime date = DateTime.FromBinary(BitConverter.ToInt64(bytes, 8));
-                        if (index >= 1 && index < 4)
-                        {
-                            m_integerToActions[index - 1].FetchAndApply(value);
-                        }
-                        else
-                        {
-                            for (int i = 0; i < 4; i++)
+                            DateTime date = DateTime.FromBinary(BitConverter.ToInt64(bytes, 8));
+                            if (index >= 1 && index < 4)
                             {
-                                m_integerToActions[i].FetchAndApply(value);
+                                if (m_integerToActions[index - 1] != null)
+                                    m_integerToActions[index - 1].FetchAndApply(value);
                             }
-                        }
+                            else
+                            {
+                                for (int i = 0; i < 4; i++)
+                                {
+                                    if (m_integerToActions[i] != null)
+                                        m_integerToActions[i].FetchAndApply(value);
+                                }
+                            }
                         }
                     }
                     else if (bytes.Length == 12)
                     {
                         int value = BitConverter.ToInt32(bytes, 0);
+
+                        if (FlushTimedActionIf1256(value, ref queueBytes))
+                            continue;
+                        Console.WriteLine($"ID {value}");
                         if (IsNotBan(value)) { 
-                        DateTime date = DateTime.FromBinary(BitConverter.ToInt64(bytes, 4));
-                       
+                            DateTime date = DateTime.FromBinary(BitConverter.ToInt64(bytes, 4));
                             for (int i = 0; i < 4; i++)
                             {
-                                m_integerToActions[i].FetchAndApply(value);
+                                if (m_integerToActions[i] != null)
+                                    m_integerToActions[i].FetchAndApply(value);
                             }
                         }
                     }
@@ -268,6 +272,16 @@ namespace XOMI
                 Thread.Sleep(1);
             }
 
+        }
+
+      
+        public static bool FlushTimedActionIf1256(int integer, ref Queue<byte[]> queue)
+        {
+            if (integer == 1256 || integer == 2256) { 
+                queue.Clear();
+                return true;
+            }
+            return false;
         }
 
         private static bool IsNotBan(int integer)
@@ -532,7 +546,7 @@ public class IntegerToActions {
     public bool m_useDebugConsole = true;
     public void FetchAndApply(int value) { 
     
-        for (int i = 0;i < value;i++) {
+        for (int i = 0;i < m_actions.Count ;i++) {
             if (m_actions[i].IsPressing(value)) { 
                 m_actions[i].Press();
                 if(m_useDebugConsole)
@@ -603,26 +617,47 @@ public class IntegerToActions {
     public DateTime Now() { return DateTime.Now; }
 
     public float RandomFloat11() { return (float)(new Random().NextDouble() * 2 - 1); }
-    
+
     public IntegerToActions(int index, XboxSingleControllerExecuter executor)
     {
         m_index = index;
         m_executer = executor;
 
         Add("Random input for all gamepads, no menu", 1399, 2399
-            ,() => {
+            , () => {
 
 
                 m_executer.Randomize_AllButMenu();
             }
-            ,() => {
+            , () => {
                 m_executer.Execute(new TimedXBoxAction_ReleaseAll(Now()));
             }
         );
         Add("Enable hardware joystick ON/OFF", 1390, 2390
-            , () => {  }
-            , () => {  }
+            , () => { }
+            , () => { }
         );
+
+        Add("Release All Button", 1390, 2390,
+            () =>
+            {
+                m_executer.Execute(new TimedXBoxAction_ReleaseAll(Now()));
+            },
+            () =>
+            {
+                m_executer.Execute(new TimedXBoxAction_ReleaseAll(Now()));
+            }
+         );
+        Add("Release All Button But Menu", 1391, 2391,
+            () =>
+            {
+                m_executer.Execute(new TimedXBoxAction_ReleaseAllButMenu(Now()));
+            },
+            () =>
+            {
+                m_executer.Execute(new TimedXBoxAction_ReleaseAllButMenu(Now()));
+            }
+         );
         Add("Press A button", 1300, 2300
             , () => { m_executer.Execute(new TimedXBoxAction_ApplyChange(Now(), XOMI.PressType.Press, XOMI.XBoxInputType.ButtonDown)); }
             , () => { m_executer.Execute(new TimedXBoxAction_ApplyChange(Now(), XOMI.PressType.Release, XOMI.XBoxInputType.ButtonDown)); }
