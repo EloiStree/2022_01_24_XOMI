@@ -5,8 +5,12 @@ import keyboard
 
 TARGET_PORT = 2506
 TARGET_IP = "127.0.0.1"
+INDEX = 0
 
 def push_text_to_port(text):
+    text.strip()
+    text = f"{text}_{INDEX}"
+    print(f"Sending: {text}")
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.sendto(text.encode(), (TARGET_IP, TARGET_PORT))
     s.close()
@@ -16,6 +20,11 @@ def push_text_to_port(text):
 
 # push_text_to_port("b")
 # push_text_to_port("a")
+
+
+key_event_state={}
+
+
 
 
 key_mapping= {
@@ -139,21 +148,33 @@ key_mapping_french={
 
 
 def on_key_event(event):
-    print(event.name)
-    bool_pressing = event.event_type == keyboard.KEY_DOWN
-    bool_releasing = event.event_type == keyboard.KEY_UP
+    global key_event_state
+    print(f"{event.name} {event.event_type}")
     
-    if event.name in key_mapping_french:
-        en_key = key_mapping_french[event.name]
-        if en_key in key_mapping:    
-            action = key_mapping[en_key]
-            if bool_pressing:
-                print(f"{event.name} / {en_key} / {action} UP")
-                push_text_to_port(action+"+")
-            if bool_releasing:
+    bool_pressing= event.event_type == keyboard.KEY_DOWN
+    bool_releasing= event.event_type == keyboard.KEY_UP
+  
+    bool_value_changed=False
+    current_state= event.event_type
+    previous_state= key_event_state.get(event.name, None)
+    if current_state != previous_state:
+        key_event_state[event.name]= current_state
+        bool_value_changed=True
+    
+    if bool_value_changed:
+        if event.name in key_mapping_french:
+            en_key = key_mapping_french[event.name]
+            if en_key in key_mapping:    
+                action = key_mapping[en_key]
                 
-                print(f"{event.name} / {en_key} / {action} DOWN")
-                push_text_to_port(action+"-")
+                
+                if bool_pressing:
+                    print(f"{event.name} / {en_key} / {action} UP")
+                    push_text_to_port(action+"+")
+                if bool_releasing:
+                    
+                    print(f"{event.name} / {en_key} / {action} DOWN")
+                    push_text_to_port(action+"-")
 
 keyboard.hook(on_key_event)
 keyboard.wait('esc')
