@@ -661,13 +661,13 @@ public class IntegerToActions {
 
         );
         Add("Press menu right", 1308, 2308
-            , () => { m_executer.Execute(new TimedXBoxAction_ApplyChange(Now(), XOMI.PressType.Press, XOMI.XBoxInputType.MenuLeft)); }
-            , () => { m_executer.Execute(new TimedXBoxAction_ApplyChange(Now(), XOMI.PressType.Release, XOMI.XBoxInputType.MenuLeft)); }
+            , () => { m_executer.Execute(new TimedXBoxAction_ApplyChange(Now(), XOMI.PressType.Press, XOMI.XBoxInputType. MenuRight)); }
+            , () => { m_executer.Execute(new TimedXBoxAction_ApplyChange(Now(), XOMI.PressType.Release, XOMI.XBoxInputType. MenuRight )); }
 
         );
         Add("Press menu left", 1309, 2309
-            , () => { m_executer.Execute(new TimedXBoxAction_ApplyChange(Now(), XOMI.PressType.Press, XOMI.XBoxInputType.MenuRight)); }
-            , () => { m_executer.Execute(new TimedXBoxAction_ApplyChange(Now(), XOMI.PressType.Release, XOMI.XBoxInputType.MenuRight)); }
+            , () => { m_executer.Execute(new TimedXBoxAction_ApplyChange(Now(), XOMI.PressType.Press, XOMI.XBoxInputType.MenuLeft)); }
+            , () => { m_executer.Execute(new TimedXBoxAction_ApplyChange(Now(), XOMI.PressType.Release, XOMI.XBoxInputType.MenuLeft)); }
 
         );
         Add("Release D-pad", 1310, 2310
