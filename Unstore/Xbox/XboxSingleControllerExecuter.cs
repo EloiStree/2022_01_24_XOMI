@@ -243,6 +243,31 @@ namespace XOMI.Unstore.Xbox
                 Console.WriteLine("Released All");
         }
 
+        public void Execute(TimedXBoxAction_ReleaseAllButMenu action) {
+            controller.SetAxisValue(Xbox360Axis.LeftThumbX, 0);
+            controller.SetAxisValue(Xbox360Axis.LeftThumbY, 0);
+            controller.SetAxisValue(Xbox360Axis.RightThumbX, 0);
+            controller.SetAxisValue(Xbox360Axis.RightThumbY, 0);
+            controller.SetSliderValue(Xbox360Slider.LeftTrigger, 0);
+            controller.SetSliderValue(Xbox360Slider.RightTrigger, 0);
+            controller.SetButtonState(Xbox360Button.A, false);
+            controller.SetButtonState(Xbox360Button.B, false);
+            controller.SetButtonState(Xbox360Button.X, false);
+            controller.SetButtonState(Xbox360Button.Y, false);
+            controller.SetButtonState(Xbox360Button.Up, false);
+            controller.SetButtonState(Xbox360Button.Down, false);
+            controller.SetButtonState(Xbox360Button.Left, false);
+            controller.SetButtonState(Xbox360Button.Right, false);
+            controller.SetButtonState(Xbox360Button.RightThumb, false);
+            controller.SetButtonState(Xbox360Button.LeftThumb, false);
+            controller.SetButtonState(Xbox360Button.LeftShoulder, false);
+            controller.SetButtonState(Xbox360Button.RightShoulder, false);
+
+            if (StaticUserPreference.m_wantDebugInfo)
+                Console.WriteLine("Released All");
+
+        }
+
         public void Randomize_AllButMenu()
         {
             controller.SetAxisValue(Xbox360Axis.LeftThumbX, (short)(new Random().Next(-32768, 32767)));

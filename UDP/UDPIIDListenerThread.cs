@@ -77,6 +77,7 @@ namespace XOMI.UDP
                 {
 
                     byte[] receiveBytes = m_listener.Receive(ref m_ipEndPoint).ToArray();
+                    Console.WriteLine($"Debug Received Udp: {receiveBytes.Length}|{receiveBytes}");
                     // Must be 16 ,12,8,4
                     if (receiveBytes.Length == 16
                         || receiveBytes.Length == 12

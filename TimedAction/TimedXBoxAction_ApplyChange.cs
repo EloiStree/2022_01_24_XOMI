@@ -84,6 +84,12 @@ namespace XOMI.TimedAction
         {
         }
     }
+    public class TimedXBoxAction_ReleaseAllButMenu : TimedXBoxAction
+    {
+        public TimedXBoxAction_ReleaseAllButMenu(DateTime whenToExecute) : base(whenToExecute)
+        {
+        }
+    }
     public class TimedXBoxAction_Disconnect : TimedXBoxAction
     {
         public TimedXBoxAction_Disconnect(DateTime whenToExecute) : base(whenToExecute)
