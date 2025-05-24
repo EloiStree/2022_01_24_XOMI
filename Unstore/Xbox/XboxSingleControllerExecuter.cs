@@ -25,6 +25,25 @@ namespace XOMI.Unstore.Xbox
             controller.Connect();
         }
 
+
+        public void Execute(TimedXBoxAction_DoubleJoysticksChange toDo)
+        {
+
+            if (StaticVariable.m_debugDevMessage)
+                Console.WriteLine(string.Format("Gamepad {0}| {1} {2} {3} {4}",
+                    toDo.GetWhenToExecute().ToString("yyyy-dd-HH-mm-ss-fff"),
+                    toDo.GetJoystickLeftX(),
+                    toDo.GetJoystickLeftY(),
+                    toDo.GetJoystickRightX(),
+                    toDo.GetJoystickRightY()
+                    ));
+            
+                    controller.SetAxisValue(Xbox360Axis.LeftThumbX, (short)(toDo.GetJoystickLeftX() * short.MaxValue));
+                    controller.SetAxisValue(Xbox360Axis.LeftThumbY, (short)(toDo.GetJoystickLeftY() * short.MaxValue));
+                    controller.SetAxisValue(Xbox360Axis.RightThumbX, (short)(toDo.GetJoystickRightX() * short.MaxValue));
+                    controller.SetAxisValue(Xbox360Axis.RightThumbY, (short)(toDo.GetJoystickRightY() * short.MaxValue));
+        }
+
         public void Execute(TimedXBoxAction_ApplyChange toDo)
         {
             if (StaticVariable.m_debugDevMessage)

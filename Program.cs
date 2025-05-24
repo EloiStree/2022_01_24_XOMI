@@ -219,8 +219,11 @@ namespace XOMI
                             if (IsNotBan(integer)) { 
                                 if (m_integerToActions[i]!=null)
                                 m_integerToActions[i].FetchAndApply(integer);
+
+
                             }
                         }
+                        CheckForGamepadAction(m_integerToActions, 0, integer, DateTime.UtcNow);
                     }
                     else if (bytes.Length == 8) { 
                     
@@ -245,17 +248,18 @@ namespace XOMI
                                 }
                             }
                         }
+                        CheckForGamepadAction(m_integerToActions, index, value, DateTime.UtcNow);
                     }
                     else if (bytes.Length == 16)
                     {
                         int index = BitConverter.ToInt32(bytes, 0);
                         int value = BitConverter.ToInt32(bytes, 4);
+                        DateTime date = DateTime.FromBinary(BitConverter.ToInt64(bytes, 8));
 
                         if (FlushTimedActionIf1256(value, ref queueBytes))
                             continue;
                         Console.WriteLine($"IID{index} {value}");
                         if (IsNotBan(value)) { 
-                            DateTime date = DateTime.FromBinary(BitConverter.ToInt64(bytes, 8));
                             if (index >= 1 && index < 4)
                             {
                                 if (m_integerToActions[index - 1] != null)
@@ -270,6 +274,8 @@ namespace XOMI
                                 }
                             }
                         }
+
+                        CheckForGamepadAction(m_integerToActions, index,value, date);
                     }
                     else if (bytes.Length == 12)
                     {
@@ -286,6 +292,8 @@ namespace XOMI
                                     m_integerToActions[i].FetchAndApply(value);
                             }
                         }
+
+                        CheckForGamepadAction(m_integerToActions, 0, value, DateTime.UtcNow);
                     }
                 }
                 
@@ -294,7 +302,75 @@ namespace XOMI
 
         }
 
-      
+        private static void CheckForGamepadAction(IntegerToActions[] integerToActions, int index, int value, DateTime utcNow)
+        {
+            if (value >= 100000000)
+            {
+
+                int tag = value / 100000000;
+               
+                if (index > 4)
+                {
+                    index = 0;
+                }
+
+
+                int integer = value % 100000000;
+                int value99000000LX = (integer / 1000000) % 100;
+                int value00990000LY = (integer / 10000) % 100;
+                int value00009900RX = (integer / 100) % 100;
+                int value00000099RY = integer % 100;
+                Convert01To99ToPercent(value99000000LX, out float percent99000000LX);
+                Convert01To99ToPercent(value00990000LY, out float percent00990000LY);
+                Convert01To99ToPercent(value00009900RX, out float percent00009900RX);
+                Convert01To99ToPercent(value00000099RY, out float percent00000099RY);
+
+
+
+                TimedXBoxAction_DoubleJoysticksChange doubleJoystick =
+                                        new TimedXBoxAction_DoubleJoysticksChange(utcNow,
+                                        percent99000000LX,
+                                        percent00990000LY,
+                                        percent00009900RX,
+                                        percent00000099RY);
+
+                if (index == 0) {
+
+
+                    foreach (IntegerToActions ita in integerToActions)
+                    {
+                        if (ita != null)
+                        {
+                            ita.m_executer.Execute(doubleJoystick);
+                        }
+                    }
+                }
+                else if (index >= 1 && index <= 4)
+                {
+                    if (integerToActions[index - 1] != null)
+                    {
+                        integerToActions[index - 1].m_executer.Execute(doubleJoystick);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Error, index out of range for double joystick change:" + index);
+                }
+
+            }
+        }
+
+        private static void Convert01To99ToPercent(int intValue99, out float percent)
+        {
+            if (intValue99 == 0)
+            {
+                percent = 0.0f;
+            }
+            else {
+                percent = (((intValue99 - 1) / 98f)-0.5f)*2f;
+            }
+        }
+
         public static bool FlushTimedActionIf1256(int integer, ref Queue<byte[]> queue)
         {
             if (integer == 1256 || integer == 2256) { 
@@ -580,6 +656,10 @@ public class IntegerToActions {
                 return;
             }
         }
+
+
+        
+
         if (m_useDebugConsole)
             System.Console.WriteLine($"No action for ({value})");
     }
@@ -637,6 +717,8 @@ public class IntegerToActions {
     public DateTime Now() { return DateTime.Now; }
 
     public float RandomFloat11() { return (float)(new Random().NextDouble() * 2 - 1); }
+
+   
 
     public IntegerToActions(int index, XboxSingleControllerExecuter executor)
     {
