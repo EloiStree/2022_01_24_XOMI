@@ -9,7 +9,6 @@ using XOMI.TimedAction;
 using XOMI.UDP;
 using XOMI.UI;
 using XOMI.Unstore.Xbox;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace XOMI.Unstore
 {
@@ -178,7 +177,6 @@ namespace XOMI.Unstore
 
         public static void ProcessIndexIntegerReceviedWithoutDate(int index, int value)
         {
-
             if (value < 1000000)
             {
                 
@@ -220,8 +218,10 @@ namespace XOMI.Unstore
 
         private static void ProcessValueAsScratchToWarcraftButton(int playerId, int value999999)
         {
-            if (IsBanGamepadButton(value999999))
+            if (IsBanGamepadButton(value999999)) { 
+                Console.WriteLine($"Ban Gamepad Button: {value999999} for player {playerId}");
                 return;
+            }
             int indexGamepad = playerId;
             if (indexGamepad > 4)
                 indexGamepad = 0;
@@ -247,14 +247,13 @@ namespace XOMI.Unstore
 
         public static void CheckForGamepadAction(IntegerToActions[] integerToActions, int index, int value, DateTime utcNow)
         {
+            int absolutValue = value < 0 ? -value : value;
             if (value >= 1700000000)
             {
 
                 int tag = value / 100000000;
-
                 if (tag == 18)
                 {
-
 
 
                     int integer = value % 100000000;
@@ -267,14 +266,12 @@ namespace XOMI.Unstore
                     Convert01To99ToPercent(value00009900RX, out float percent00009900RX);
                     Convert01To99ToPercent(value00000099RY, out float percent00000099RY);
 
-
-
-                    TimedXBoxAction_DoubleJoysticksChange doubleJoystick =
-                                            new TimedXBoxAction_DoubleJoysticksChange(utcNow,
-                                            percent99000000LX,
-                                            percent00990000LY,
-                                            percent00009900RX,
-                                            percent00000099RY);
+                TimedXBoxAction_DoubleJoysticksChange doubleJoystick =
+                                        new TimedXBoxAction_DoubleJoysticksChange(utcNow,
+                                        percent99000000LX,
+                                        percent00990000LY,
+                                        percent00009900RX,
+                                        percent00000099RY);
                     int indexGamepad = index;
                     if (indexGamepad > 4)
                         indexGamepad = 0;
@@ -297,9 +294,230 @@ namespace XOMI.Unstore
 
 
             }
-            else { 
+       
+            else if (absolutValue >= 1000000)
+
+            { 
+                List<TimedXBoxAction> actions = new List<TimedXBoxAction>();
+                
+                Int1899Parser.GetValue999999(value, out int value999999);
+                Int1899Parser.GetPlayerId(value, out byte playerId);
+                Int1899Parser.GetTag99(value, out byte tag);
+
+                if(playerId>4)
+                {
+                    playerId = 0;
+                }
+
+                bool signed = value < 0;
+                if (signed) {
+                    value999999 = -value999999;
+                }
+
+                if (tag == 19) {
+                    // Scratch to warcraft commande
+
+                    ProcessValueAsScratchToWarcraftButton(playerId, value999999);
+                    Console.WriteLine($"Player {playerId} Scratch to Warcraft Command: {value999999}");
+                }
+                else if (tag == 20)
+                {
+                    // Is  axis  9 9 9 9  trigger 9 9 
+
+                    byte triggerRight = (byte)(value999999 % 10);
+                    byte triggerLeft = (byte)((value999999 / 10) % 10);
+                    byte rightAxisY = (byte)((value999999 / 100) % 10);
+                    byte rightAxisX = (byte)((value999999 / 1000) % 10);
+                    byte leftAxisY = (byte)((value999999 / 10000) % 10);
+                    byte leftAxisX = (byte)((value999999 / 100000) % 10);
+
+                    Console.WriteLine($"Player {playerId} Trigger:  {triggerLeft} {triggerRight} {leftAxisX} {leftAxisY} Axis 9 9 9 9: {rightAxisX} {rightAxisY}");
+
+                    Pourcent01From9(triggerLeft, out float percentTriggerLeft);
+                    Pourcent01From9(triggerRight, out float percentTriggerRight);
+                    Pourcent11From9(leftAxisX, out float percentLeftAxisX);
+                    Pourcent11From9(leftAxisY, out float percentLeftAxisY);
+                    Pourcent11From9(rightAxisX, out float percentRightAxisX);
+                    Pourcent11From9(rightAxisY, out float percentRightAxisY);
+
+                    DateTime dateNow = DateTime.UtcNow;
+                    TimedXBoxAction_AxisChange triggerAction =
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.TriggerLeft, percentTriggerLeft);
+                    TimedXBoxAction_AxisChange triggerActionRight =
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.TriggerRight, percentTriggerRight);
+                    TimedXBoxAction_AxisChange leftAxisXAction =
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.JoystickLeft_Left2Right, percentLeftAxisX);
+                    TimedXBoxAction_AxisChange leftAxisYAction =
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.JoystickLeft_Down2Up, percentLeftAxisY);
+                    TimedXBoxAction_AxisChange rightAxisXAction =
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.JoystickRight_Left2Right, percentRightAxisX);
+                    TimedXBoxAction_AxisChange rightAxisYAction =        
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.JoystickRight_Down2Up, percentRightAxisY);
+
+
+                    actions.Add(triggerAction);
+                    actions.Add(triggerActionRight);
+                    actions.Add(leftAxisXAction);
+                    actions.Add(leftAxisYAction);
+                    actions.Add(rightAxisXAction);
+                    actions.Add(rightAxisYAction);
+
+
+                }
+                else if (tag == 21)
+                {
+                    //left xy
+                    PourcentDouble999(value999999, out float percentLeftX, out float percentLeftY);
+                    actions.Add(new TimedXBoxAction_JoysticksChange(utcNow, XBoxJoystickInputType.JoystickLeft, percentLeftX, percentLeftY));
+                }
+                else if (tag == 22) {
+
+                    //right xy
+
+                    PourcentDouble999(value999999, out float percentRightX, out float percenRightY);
+                    actions.Add(new TimedXBoxAction_JoysticksChange(utcNow, XBoxJoystickInputType.JoystickRight, percentRightX, percenRightY));
+
+                }
+                else if (tag == 23)
+                {
+                    //left x
+                    float percentLeftX = 0.0f;
+                    Pourcent11From999999(value999999, out percentLeftX);
+                    Console.WriteLine($"Player {playerId} Joystick Left X: {percentLeftX}");
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType.JoystickLeft_Left2Right, percentLeftX));
+                }
+                else if (tag == 24)
+                {
+                    //right y
+                    float percentLeftY = 0.0f;
+                    Pourcent11From999999(value999999, out percentLeftY);
+                    Console.WriteLine($"Player {playerId} Joystick Left Y: {percentLeftY}");
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType.JoystickLeft_Down2Up, percentLeftY));
+
+                }
+                else if (tag == 25)
+                {
+                    //right x
+                    float percentRightX = 0.0f;
+                    Pourcent11From999999(value999999, out percentRightX);
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType.JoystickRight_Left2Right, percentRightX));
+                }
+                else if (tag == 26)
+                {
+
+                    //right y
+                    float percentRightY = 0.0f;
+                    Pourcent11From999999(value999999, out percentRightY);
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType.JoystickRight_Down2Up, percentRightY));
+                }
+                if (tag == 27)
+                {
+                    //trigger y
+                    float percentTriggerLeft = 0.0f;
+                    Pourcent01From999999(value999999, out percentTriggerLeft);
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType. TriggerLeft, percentTriggerLeft));
+
+                }
+                else if (tag == 28)
+                {
+                    //trigger x
+                    float percentTriggerRight = 0.0f;
+                    Pourcent01From999999(value999999, out percentTriggerRight);
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType.TriggerRight, percentTriggerRight));
+                }
+
+
+
+                for (int xbox = 0; xbox < 4; xbox++) {
+                    if (xbox >= integerToActions.Length)
+                    {
+                        continue;
+                    }
+
+                    if (integerToActions[xbox] != null)
+                    {
+                        if (playerId == 0 || playerId == xbox + 1)
+                        {
+                            foreach (TimedXBoxAction action in actions)
+                            {
+                                integerToActions[xbox].m_executer.Execute(action);
+                            }
+                        }
+                    }
+                }
+
+
+
+
+
+            }
+        
+        }
+
+        public static void PourcentDouble999(int value999999, out float percentLeftX, out float percentLeftY)
+        {
+            int partLeft = value999999 / 1000;
+            partLeft = partLeft % 1000;
+            int partRight = value999999 % 1000;
+
+
+            if(partLeft == 0 )
+            {
+                percentLeftX = 0.0f;
+            }
+            else
+            {
+                percentLeftX = (((partLeft-1) / 998f) - 0.5f) * 2f;
+            }
+
+            if (partRight == 0)
+            {
+                percentLeftY = 0.0f;
+            }
+            else
+            {
+                percentLeftY = (((partRight - 1) / 998f) - 0.5f) * 2f;
+            }
+        }
+
+        private static void Pourcent01From999999(int value, out float percent01)
+        {
+            percent01 = Math.Clamp(value / 999999f, 0f, 1f);
+        }
+
+        private static void Pourcent11From999999(int value, out float percent11)
+        {
+            percent11 = Math.Clamp((value / 999999f - 0.5f) * 2f, -1f, 1f);
+        }
+
+        private static void Pourcent11From9(byte leftAxisX, out float percent1To1)
+        {
+            if (leftAxisX == 0)
+            {
+                percent1To1 = 0.0f;
+            }
+            else
+            {
+                percent1To1 = ((leftAxisX - 1f) / 8f - 0.5f) * 2f;
+            }
+        }
+
+        private static void Pourcent01From9(byte triggerLeft, out float percent0To1)
+        {
             
-                ff
+            if (triggerLeft == 0)
+            {
+                percent0To1 = 0.0f;
+            }
+            else
+            {
+                percent0To1 = ((triggerLeft - 1f) / 8f );
             }
         }
 
@@ -325,11 +543,15 @@ namespace XOMI.Unstore
 
         public static bool IsNotBanGamepadButton(int integer)
         {
-            return !m_banInput.Contains(integer);
+            return true;
+            // DISABLE THE TIME OF A BUG CORRECTION
+            // return !m_banInput.Contains(integer);
         }
         public static bool IsBanGamepadButton(int integer)
         {
-            return m_banInput.Contains(integer);
+            return false;
+            // DISABLE THE TIME OF A BUG CORRECTION
+            // return m_banInput.Contains(integer);
         }
 
     }
