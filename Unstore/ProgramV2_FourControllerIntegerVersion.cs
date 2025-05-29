@@ -4,10 +4,12 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using XOMI.InfoHolder;
+using XOMI.Int1899;
 using XOMI.TimedAction;
 using XOMI.UDP;
 using XOMI.UI;
 using XOMI.Unstore.Xbox;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace XOMI.Unstore
 {
@@ -146,89 +148,26 @@ namespace XOMI.Unstore
                     if (bytes.Length == 4)
                     {
                         int integer = BitConverter.ToInt32(bytes, 0);
-                        if (FlushTimedActionIf1256(integer, ref queueBytes))
-                            continue;
-                        Console.WriteLine($"I{integer}");
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if (IsNotBan(integer)) { 
-                                if (m_integerToActions[i]!=null)
-                                m_integerToActions[i].FetchAndApply(integer);
-
-
-                            }
-                        }
-                        CheckForGamepadAction(m_integerToActions, 0, integer, DateTime.UtcNow);
+                        ProcessIndexIntegerReceviedWithoutDate(integer);
                     }
                     else if (bytes.Length == 8) { 
                     
                         int index = BitConverter.ToInt32(bytes, 0);
                         int value = BitConverter.ToInt32(bytes, 4);
-
-                        if (FlushTimedActionIf1256(value, ref queueBytes))
-                            continue;
-                        Console.WriteLine($"II{index} {value}");
-                        if (IsNotBan(value)) { 
-                            if (index >= 1 && index < 4)
-                            {
-                                if (m_integerToActions[index - 1] != null)
-                                    m_integerToActions[index - 1].FetchAndApply(value);
-                            }
-                            else { 
-                        
-                                for (int i = 0; i < 4; i++)
-                                {
-                                    if (m_integerToActions[i] != null)
-                                        m_integerToActions[i].FetchAndApply(value);
-                                }
-                            }
-                        }
-                        CheckForGamepadAction(m_integerToActions, index, value, DateTime.UtcNow);
+                        ProcessIndexIntegerReceviedWithoutDate(index, value);
                     }
                     else if (bytes.Length == 16)
                     {
+
                         int index = BitConverter.ToInt32(bytes, 0);
                         int value = BitConverter.ToInt32(bytes, 4);
                         DateTime date = DateTime.FromBinary(BitConverter.ToInt64(bytes, 8));
-
-                        if (FlushTimedActionIf1256(value, ref queueBytes))
-                            continue;
-                        Console.WriteLine($"IID{index} {value}");
-                        if (IsNotBan(value)) { 
-                            if (index >= 1 && index < 4)
-                            {
-                                if (m_integerToActions[index - 1] != null)
-                                    m_integerToActions[index - 1].FetchAndApply(value);
-                            }
-                            else
-                            {
-                                for (int i = 0; i < 4; i++)
-                                {
-                                    if (m_integerToActions[i] != null)
-                                        m_integerToActions[i].FetchAndApply(value);
-                                }
-                            }
-                        }
-
-                        CheckForGamepadAction(m_integerToActions, index,value, date);
+                        ProcessIndexIntegerReceviedWithoutDate(index, value);
                     }
                     else if (bytes.Length == 12)
                     {
                         int value = BitConverter.ToInt32(bytes, 0);
-
-                        if (FlushTimedActionIf1256(value, ref queueBytes))
-                            continue;
-                        Console.WriteLine($"ID {value}");
-                        if (IsNotBan(value)) { 
-                            DateTime date = DateTime.FromBinary(BitConverter.ToInt64(bytes, 4));
-                            for (int i = 0; i < 4; i++)
-                            {
-                                if (m_integerToActions[i] != null)
-                                    m_integerToActions[i].FetchAndApply(value);
-                            }
-                        }
-
-                        CheckForGamepadAction(m_integerToActions, 0, value, DateTime.UtcNow);
+                        ProcessIndexIntegerReceviedWithoutDate(value);
                     }
                 }
                 
@@ -237,61 +176,130 @@ namespace XOMI.Unstore
 
         }
 
-        private static void CheckForGamepadAction(IntegerToActions[] integerToActions, int index, int value, DateTime utcNow)
+        public static void ProcessIndexIntegerReceviedWithoutDate(int index, int value)
         {
-            if (value >= 100000000)
+
+            if (value < 1000000)
+            {
+                
+                ProcessValueAsScratchToWarcraftButton(index, value);
+
+            }
+            else if (value > 1700000000)
+            {
+                // That a XOMI 1899999999 action or 1700000000
+                CheckForGamepadAction(index, value);
+
+            }
+            else {
+
+                Int1899Parser.GetValue999999(value, out int value999999);
+                Int1899Parser.GetPlayerId(value, out byte playerId);
+                Int1899Parser.GetTag99(value, out byte tag99);
+                if (tag99 == 19)
+                {
+
+                    ProcessValueAsScratchToWarcraftButton(playerId, value999999);
+                }
+                else {
+
+
+                    CheckForGamepadAction( index, value);
+                }
+
+            }
+
+          
+
+        }
+
+        private static void CheckForGamepadAction(int index, int value)
+        {
+            CheckForGamepadAction(m_integerToActions, index, value, DateTime.UtcNow);
+        }
+
+        private static void ProcessValueAsScratchToWarcraftButton(int playerId, int value999999)
+        {
+            if (IsBanGamepadButton(value999999))
+                return;
+            int indexGamepad = playerId;
+            if (indexGamepad > 4)
+                indexGamepad = 0;
+
+            for (int selectGamepad = 0; selectGamepad < 4; selectGamepad++) {
+                int gamepadNumber = selectGamepad + 1;
+                IntegerToActions focusGamepad = m_integerToActions[selectGamepad];
+                if (indexGamepad == 0 || indexGamepad == gamepadNumber) {
+
+                    focusGamepad.FetchAndApply(value999999);
+                }
+            }
+
+        }
+
+
+        public static void ProcessIndexIntegerReceviedWithoutDate(int value)
+        {
+            ProcessIndexIntegerReceviedWithoutDate(0, value);
+
+        }
+
+
+        public static void CheckForGamepadAction(IntegerToActions[] integerToActions, int index, int value, DateTime utcNow)
+        {
+            if (value >= 1700000000)
             {
 
                 int tag = value / 100000000;
-               
-                if (index > 4)
+
+                if (tag == 18)
                 {
-                    index = 0;
-                }
-
-
-                int integer = value % 100000000;
-                int value99000000LX = integer / 1000000 % 100;
-                int value00990000LY = integer / 10000 % 100;
-                int value00009900RX = integer / 100 % 100;
-                int value00000099RY = integer % 100;
-                Convert01To99ToPercent(value99000000LX, out float percent99000000LX);
-                Convert01To99ToPercent(value00990000LY, out float percent00990000LY);
-                Convert01To99ToPercent(value00009900RX, out float percent00009900RX);
-                Convert01To99ToPercent(value00000099RY, out float percent00000099RY);
 
 
 
-                TimedXBoxAction_DoubleJoysticksChange doubleJoystick =
-                                        new TimedXBoxAction_DoubleJoysticksChange(utcNow,
-                                        percent99000000LX,
-                                        percent00990000LY,
-                                        percent00009900RX,
-                                        percent00000099RY);
+                    int integer = value % 100000000;
+                    int value99000000LX = integer / 1000000 % 100;
+                    int value00990000LY = integer / 10000 % 100;
+                    int value00009900RX = integer / 100 % 100;
+                    int value00000099RY = integer % 100;
+                    Convert01To99ToPercent(value99000000LX, out float percent99000000LX);
+                    Convert01To99ToPercent(value00990000LY, out float percent00990000LY);
+                    Convert01To99ToPercent(value00009900RX, out float percent00009900RX);
+                    Convert01To99ToPercent(value00000099RY, out float percent00000099RY);
 
-                if (index == 0) {
 
 
-                    foreach (IntegerToActions ita in integerToActions)
+                    TimedXBoxAction_DoubleJoysticksChange doubleJoystick =
+                                            new TimedXBoxAction_DoubleJoysticksChange(utcNow,
+                                            percent99000000LX,
+                                            percent00990000LY,
+                                            percent00009900RX,
+                                            percent00000099RY);
+                    int indexGamepad = index;
+                    if (indexGamepad > 4)
+                        indexGamepad = 0;
+                    for (int selectGamepad = 0; selectGamepad < 4; selectGamepad++)
                     {
-                        if (ita != null)
+                        int gamepadNumber = selectGamepad + 1;
+                        if (indexGamepad == 0 || indexGamepad == gamepadNumber)
                         {
-                            ita.m_executer.Execute(doubleJoystick);
+                            IntegerToActions focusGamepad = m_integerToActions[selectGamepad];
+                            integerToActions[selectGamepad].m_executer.Execute(doubleJoystick);
+                            // Print a debug of the doubleJoystick
+
+                            //Console.WriteLine($"Debug Double Joystick: {gamepadNumber} {percent99000000LX} {percent00990000LY} {percent00009900RX} {percent00000099RY}");
+
+
                         }
                     }
                 }
-                else if (index >= 1 && index <= 4)
-                {
-                    if (integerToActions[index - 1] != null)
-                    {
-                        integerToActions[index - 1].m_executer.Execute(doubleJoystick);
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Error, index out of range for double joystick change:" + index);
-                }
 
+
+
+            }
+            else { 
+            
+                ff
             }
         }
 
@@ -315,9 +323,13 @@ namespace XOMI.Unstore
             return false;
         }
 
-        private static bool IsNotBan(int integer)
+        public static bool IsNotBanGamepadButton(int integer)
         {
             return !m_banInput.Contains(integer);
+        }
+        public static bool IsBanGamepadButton(int integer)
+        {
+            return m_banInput.Contains(integer);
         }
 
     }
