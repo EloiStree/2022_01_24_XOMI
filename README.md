@@ -3,7 +3,12 @@ XOmi is a small tool that listen to UDP message to execute Xbox commands.
   
 > Note :Code is not clean or beautiful at all.  
 > But is works and that good enough for me for now.  
-  
+
+
+You can test your code with this tool:
+https://github.com/EloiStree/2025_05_29_UnityProject_XInputFourDroneDebug
+
+
 # V0.1: Integer version
 
 See the mapping of the key here:  
