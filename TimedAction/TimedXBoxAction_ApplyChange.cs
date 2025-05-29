@@ -72,6 +72,46 @@ namespace XOMI.TimedAction
             return m_percentYBot2Top;
         }
     }
+
+    public class TimedXBoxAction_DoubleJoysticksChange : TimedXBoxAction
+    {
+        private float m_percentLeftJoystickXLeft2Right;
+        private float m_percentLeftJoystickYBot2Top;
+        private float m_percentRightJoystickXLeft2Right;
+        private float m_percentRightJoystickYBot2Top;
+
+        public TimedXBoxAction_DoubleJoysticksChange(DateTime whenToExecute, 
+            float percentLeftJoystickXLeft2Right,
+            float percentLeftJoystickYBot2Top, 
+            float percentRightJoystickXLeft2Right,
+            float percentRightJoystickYBot2Top) : base(whenToExecute)
+        {
+            m_percentLeftJoystickXLeft2Right = percentLeftJoystickXLeft2Right;
+            m_percentLeftJoystickYBot2Top = percentLeftJoystickYBot2Top;
+            m_percentRightJoystickXLeft2Right = percentRightJoystickXLeft2Right;
+            m_percentRightJoystickYBot2Top = percentRightJoystickYBot2Top;
+        }
+
+        public float GetJoystickLeftX()
+        {
+            return m_percentLeftJoystickXLeft2Right;
+        }
+
+        public float GetJoystickLeftY()
+        {
+            return m_percentLeftJoystickYBot2Top;
+        }
+
+        public float GetJoystickRightX()
+        {
+            return m_percentRightJoystickXLeft2Right;
+        }
+
+        public float GetJoystickRightY()
+        {
+            return m_percentRightJoystickYBot2Top;
+        }
+    }
     public class TimedXBoxAction_FlushAllCommands : TimedXBoxAction
     {
         public TimedXBoxAction_FlushAllCommands(DateTime whenToExecute) : base(whenToExecute)

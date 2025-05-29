@@ -25,6 +25,68 @@ namespace XOMI.Unstore.Xbox
             controller.Connect();
         }
 
+        public void Execute(TimedXBoxAction toDo)
+        {
+            if ( toDo is TimedXBoxAction_ApplyChange)
+            {
+                Execute((TimedXBoxAction_ApplyChange)toDo);
+            }
+            else if (toDo is TimedXBoxAction_AxisChange)
+            {
+                Execute((TimedXBoxAction_AxisChange)toDo);
+            }
+            else if (toDo is TimedXBoxAction_JoysticksChange)
+            {
+                Execute((TimedXBoxAction_JoysticksChange)toDo);
+            }
+            else if (toDo is TimedXBoxAction_DoubleJoysticksChange)
+            {
+                Execute((TimedXBoxAction_DoubleJoysticksChange)toDo);
+            }
+            else if (toDo is TimedXBoxAction_Disconnect)
+            {
+                Execute((TimedXBoxAction_Disconnect)toDo);
+            }
+            else if (toDo is TimedXBoxAction_Connect)
+            {
+                Execute((TimedXBoxAction_Connect)toDo);
+            }
+            else if (toDo is TimedXBoxAction_Exit)
+            {
+                Execute((TimedXBoxAction_Exit)toDo);
+            }
+            else if (toDo is TimedXBoxAction_Restart)
+            {
+                Execute((TimedXBoxAction_Restart)toDo);
+            }
+            else if (toDo is TimedXBoxAction_ReleaseAll)
+            {
+                Execute((TimedXBoxAction_ReleaseAll)toDo);
+            }
+            else if (toDo is TimedXBoxAction_ReleaseAllButMenu)
+            {
+                Execute((TimedXBoxAction_ReleaseAllButMenu)toDo);
+            }
+        }
+
+        public void Execute(TimedXBoxAction_DoubleJoysticksChange toDo)
+        {
+
+            if (StaticVariable.m_debugDevMessage)
+                Console.WriteLine(string.Format("Gamepad {0}| {1} {2} {3} {4}",
+                    toDo.GetWhenToExecute().ToString("yyyy-dd-HH-mm-ss-fff"),
+                    toDo.GetJoystickLeftX(),
+                    toDo.GetJoystickLeftY(),
+                    toDo.GetJoystickRightX(),
+                    toDo.GetJoystickRightY()
+                    ));
+            
+                    controller.SetAxisValue(Xbox360Axis.LeftThumbX, (short)(toDo.GetJoystickLeftX() * short.MaxValue));
+                    controller.SetAxisValue(Xbox360Axis.LeftThumbY, (short)(toDo.GetJoystickLeftY() * short.MaxValue));
+                    controller.SetAxisValue(Xbox360Axis.RightThumbX, (short)(toDo.GetJoystickRightX() * short.MaxValue));
+                    controller.SetAxisValue(Xbox360Axis.RightThumbY, (short)(toDo.GetJoystickRightY() * short.MaxValue));
+        }
+
         public void Execute(TimedXBoxAction_ApplyChange toDo)
         {
             if (StaticVariable.m_debugDevMessage)
