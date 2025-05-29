@@ -126,27 +126,24 @@ IF you can only use Integer, use 1899 format. See below
 | Release ALL Touch  but menu        | 1391                 | 2391                   |
 | Clear Timed Command        | 1398                 | 2398                   |
 
-
-When you create tunnel on shared served, you can only send integer in my toolboxes.
+When you create a tunnel on a shared server, you can only send integers in my toolboxes.
 If you are in this case, I created a format called 1899 for that.
 
-8899666666: 88 Player, 99 Value Type, 666666 Value
+`8899666666`: 88 Player, 99 Value Type, 666666 Value
 
-01 19 0000000 Scratch To Warcraft Tables 1000 2000
-01 20 9 9 9 9 9 9 Left X Y Right X Y Trigger L R 
-  Axis 0 = Zero, 1 = -1 , 9 = 1 
-  Joysticks 0 = Zero, 1 = 0 , 9 = 1 
-  
-01 21 999 999 Left XY  0 = Zero, 001 = -1 , 999 = 1
-01 22 999 999 Right XY  0 = Zero, 001 = -1 , 999 = 1
-01 23 999999 Percent -1(000000) to 1(999999) Left X
-01 24 999999 Percent -1(000000) to 1(999999) Left Y
-01 25 999999 Percent -1(000000) to 1(999999) Right X
-01 26 999999 Percent -1(000000) to 1(999999) Right Y
-01 27 999999 Percent 0(000000) to 1(999999) Trigger Left
-01 28 999999 Percent 0(000000) to 1(999999) Trigger Right
+| Code       | Description                                      |
+|------------|--------------------------------------------------|
+| 01 19 0000000 | Scratch To Warcraft Tables 1000 2000             |
+| 01 20 9 9 9 9 9 9 | Left X Y Right X Y Trigger L R                   |
+|            | Axis 0 = Zero, 1 = -1 , 9 = 1                   |
+|            | Joysticks 0 = Zero, 1 = 0 , 9 = 1               |
+| 01 21 999 999 | Left XY  0 = Zero, 001 = -1 , 999 = 1           |
+| 01 22 999 999 | Right XY  0 = Zero, 001 = -1 , 999 = 1           |
+| 01 23 999999 | Percent -1(000000) to 1(999999) Left X         |
+| 01 24 999999 | Percent -1(000000) to 1(999999) Left Y         |
+| 01 25 999999 | Percent -1(000000) to 1(999999) Right X        |
+| 01 26 999999 | Percent -1(000000) to 1(999999) Right Y        |
+| 01 27 999999 | Percent 0(000000) to 1(999999) Trigger Left    |
+| 01 28 999999 | Percent 0(000000) to 1(999999) Trigger Right    |
 
-More about it: https://github.com/EloiStree/OpenUPM_PushGenericIID/tree/main/Runtime/Unstore/1899
-
-
-
+More about it: [GitHub - 1899 Format](https://github.com/EloiStree/OpenUPM_PushGenericIID/tree/main/Runtime/Unstore/1899)
