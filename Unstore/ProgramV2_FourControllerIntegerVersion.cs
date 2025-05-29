@@ -239,11 +239,13 @@ namespace XOMI.Unstore
 
         private static void CheckForGamepadAction(IntegerToActions[] integerToActions, int index, int value, DateTime utcNow)
         {
-            if (value >= 100000000)
+            int absolutValue = value < 0 ? -value : value;
+            // The input is a compressed gamepad input.
+            if (value >= 1700000000)
             {
 
                 int tag = value / 100000000;
-               
+
                 if (index > 4)
                 {
                     index = 0;
@@ -269,7 +271,8 @@ namespace XOMI.Unstore
                                         percent00009900RX,
                                         percent00000099RY);
 
-                if (index == 0) {
+                if (index == 0)
+                {
 
 
                     foreach (IntegerToActions ita in integerToActions)
@@ -292,6 +295,233 @@ namespace XOMI.Unstore
                     Console.WriteLine("Error, index out of range for double joystick change:" + index);
                 }
 
+            }
+            else if (absolutValue >= 100000000)
+            { 
+                List<TimedXBoxAction> actions = new List<TimedXBoxAction>();
+                int playerId = (value / 100000000)%100;
+                int tag = (value / 1000000) % 100;
+                int value999999  = absolutValue % 1000000;
+                if (value< 0) {
+                    value999999 = -value999999;
+                }
+
+                if (tag == 19) { 
+                // Scratch to warcraft commande
+
+                    
+                    for (int xbox = 0; xbox < 4; xbox++)
+                    {
+                        if (xbox >= integerToActions.Length)
+                        {
+                            continue;
+                        }
+
+                        if (integerToActions[xbox] != null)
+                        {
+                            integerToActions[xbox].FetchAndApply(value999999);
+                        }
+                    }
+
+                    Console.WriteLine($"Player {playerId} Scratch to Warcraft Command: {value999999}");
+                }
+                else if (tag == 20)
+                {
+                    // Is  axis  9 9 9 9  trigger 9 9 
+
+                    byte triggerRight = (byte)(value999999 % 10);
+                    byte triggerLeft = (byte)((value999999 / 10) % 10);
+                    byte rightAxisY = (byte)((value999999 / 100) % 10);
+                    byte rightAxisX = (byte)((value999999 / 1000) % 10);
+                    byte leftAxisY = (byte)((value999999 / 10000) % 10);
+                    byte leftAxisX = (byte)((value999999 / 100000) % 10);
+
+                    Console.WriteLine($"Player {playerId} Trigger:  {triggerLeft} {triggerRight} {leftAxisX} {leftAxisY} Axis 9 9 9 9: {rightAxisX} {rightAxisY}");
+
+                    Pourcent01From9(triggerLeft, out float percentTriggerLeft);
+                    Pourcent01From9(triggerRight, out float percentTriggerRight);
+                    Pourcent11From9(leftAxisX, out float percentLeftAxisX);
+                    Pourcent11From9(leftAxisY, out float percentLeftAxisY);
+                    Pourcent11From9(rightAxisX, out float percentRightAxisX);
+                    Pourcent11From9(rightAxisY, out float percentRightAxisY);
+
+                    DateTime dateNow = DateTime.UtcNow;
+                    TimedXBoxAction_AxisChange triggerAction =
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.TriggerLeft, percentTriggerLeft);
+                    TimedXBoxAction_AxisChange triggerActionRight =
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.TriggerRight, percentTriggerRight);
+                    TimedXBoxAction_AxisChange leftAxisXAction =
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.JoystickLeft_Left2Right, percentLeftAxisX);
+                    TimedXBoxAction_AxisChange leftAxisYAction =
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.JoystickLeft_Down2Up, percentLeftAxisY);
+                    TimedXBoxAction_AxisChange rightAxisXAction =
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.JoystickRight_Left2Right, percentRightAxisX);
+                    TimedXBoxAction_AxisChange rightAxisYAction =        
+                        new TimedXBoxAction_AxisChange(dateNow,
+                        XBoxAxisInputType.JoystickRight_Down2Up, percentRightAxisY);
+
+
+                    actions.Add(triggerAction);
+                    actions.Add(triggerActionRight);
+                    actions.Add(leftAxisXAction);
+                    actions.Add(leftAxisYAction);
+                    actions.Add(rightAxisXAction);
+                    actions.Add(rightAxisYAction);
+
+
+                }
+                else if (tag == 21)
+                {
+                    //left xy
+                    PourcentDouble999(value999999, out float percentLeftX, out float percentLeftY);
+                    actions.Add(new TimedXBoxAction_JoysticksChange(utcNow, XBoxJoystickInputType.JoystickLeft, percentLeftX, percentLeftY));
+                }
+                else if (tag == 22) {
+
+                    //right xy
+
+                    PourcentDouble999(value999999, out float percentRightX, out float percenRightY);
+                    actions.Add(new TimedXBoxAction_JoysticksChange(utcNow, XBoxJoystickInputType.JoystickRight, percentRightX, percenRightY));
+
+                }
+                else if (tag == 23)
+                {
+                    //left x
+                    float percentLeftX = 0.0f;
+                    Pourcent11From999999(value999999, out percentLeftX);
+                    Console.WriteLine($"Player {playerId} Joystick Left X: {percentLeftX}");
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType.JoystickLeft_Left2Right, percentLeftX));
+                }
+                else if (tag == 24)
+                {
+                    //right y
+                    float percentLeftY = 0.0f;
+                    Pourcent11From999999(value999999, out percentLeftY);
+                    Console.WriteLine($"Player {playerId} Joystick Left Y: {percentLeftY}");
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType.JoystickLeft_Down2Up, percentLeftY));
+
+                }
+                else if (tag == 25)
+                {
+                    //right x
+                    float percentRightX = 0.0f;
+                    Pourcent11From999999(value999999, out percentRightX);
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType.JoystickRight_Left2Right, percentRightX));
+                }
+                else if (tag == 26)
+                {
+
+                    //right y
+                    float percentRightY = 0.0f;
+                    Pourcent11From999999(value999999, out percentRightY);
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType.JoystickRight_Down2Up, percentRightY));
+                }
+                if (tag == 27)
+                {
+                    //trigger y
+                    float percentTriggerLeft = 0.0f;
+                    Pourcent01From999999(value999999, out percentTriggerLeft);
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType.TriggerRight, percentTriggerLeft));
+
+                }
+                else if (tag == 28)
+                {
+                    //trigger x
+                    float percentTriggerRight = 0.0f;
+                    Pourcent01From999999(value999999, out percentTriggerRight);
+                    actions.Add(new TimedXBoxAction_AxisChange(utcNow, XBoxAxisInputType.TriggerLeft, percentTriggerRight));
+                }
+
+
+
+                for (int xbox = 0; xbox < 4; xbox++) {
+                    if (xbox >= integerToActions.Length)
+                    {
+                        continue;
+                    }
+
+                    if (integerToActions[xbox] != null)
+                    {
+                        if (index == 0 || index == xbox + 1)
+                        {
+                            foreach (TimedXBoxAction action in actions)
+                            {
+                                integerToActions[xbox].m_executer.Execute(action);
+                            }
+                        }
+                    }
+                }
+
+
+
+
+
+            }
+        }
+
+        public static void PourcentDouble999(int value999999, out float percentLeftX, out float percentLeftY)
+        {
+            int partLeft = value999999 / 1000;
+            partLeft = partLeft % 1000;
+            int partRight = value999999 % 1000;
+
+
+            if(partLeft == 0 )
+            {
+                percentLeftX = 0.0f;
+            }
+            else
+            {
+                percentLeftX = (((partLeft-1) / 998f) - 0.5f) * 2f;
+            }
+
+            if (partRight == 0)
+            {
+                percentLeftY = 0.0f;
+            }
+            else
+            {
+                percentLeftY = (((partRight - 1) / 998f) - 0.5f) * 2f;
+            }
+        }
+
+        private static void Pourcent01From999999(int value, out float percent01)
+        {
+            percent01 = Math.Clamp(value / 999999f, 0f, 1f);
+        }
+
+        private static void Pourcent11From999999(int value, out float percent11)
+        {
+            percent11 = Math.Clamp((value / 999999f - 0.5f) * 2f, -1f, 1f);
+        }
+
+        private static void Pourcent11From9(byte leftAxisX, out float percent1To1)
+        {
+            if (leftAxisX == 0)
+            {
+                percent1To1 = 0.0f;
+            }
+            else
+            {
+                percent1To1 = ((leftAxisX - 1f) / 8f - 0.5f) * 2f;
+            }
+        }
+
+        private static void Pourcent01From9(byte triggerLeft, out float percent0To1)
+        {
+            
+            if (triggerLeft == 0)
+            {
+                percent0To1 = 0.0f;
+            }
+            else
+            {
+                percent0To1 = ((triggerLeft - 1f) / 8f );
             }
         }
 
