@@ -1,0 +1,1 @@
+start "" "C:\Git\liftoff\2022_01_24_XOMI\bin\Debug\net9.0\XOMI.exe"
