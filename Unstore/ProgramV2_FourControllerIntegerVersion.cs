@@ -27,6 +27,8 @@ namespace XOMI.Unstore
         public static IntegerToActions [] m_integerToActions = new IntegerToActions[4];
         public static int m_controllerNumber = 4;
 
+
+
         public static void Run(string[] args)
         {
 
@@ -488,12 +490,18 @@ namespace XOMI.Unstore
 
         private static void Pourcent01From999999(int value, out float percent01)
         {
-            percent01 = Math.Clamp(value / 999999f, 0f, 1f);
+            if (value == 0)
+                percent01 = 0;
+            else
+                percent01 = Math.Clamp(value / 999998f, 0f, 1f);
         }
 
         private static void Pourcent11From999999(int value, out float percent11)
         {
-            percent11 = Math.Clamp((value / 999999f - 0.5f) * 2f, -1f, 1f);
+            if (value == 0)
+                percent11 = 0;
+            else 
+                percent11 = Math.Clamp((value / 999998f - 0.5f) * 2f, -1f, 1f);
         }
 
         private static void Pourcent11From9(byte leftAxisX, out float percent1To1)
