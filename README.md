@@ -1,4 +1,4 @@
-# 2022_01_24_XOMI                                                                                          
+# XOMI                                                                                          
 XOmi is a small tool that listen to UDP message to execute Xbox commands.  
   
 > Note :Code is not clean or beautiful at all.  
